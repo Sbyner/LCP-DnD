@@ -27,6 +27,6 @@ public class Action {
 		CAST,
 		DODGE,
 		HELP,
-		HIDE,
+		HIDE
 	}
 }

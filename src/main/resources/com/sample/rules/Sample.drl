@@ -25,8 +25,19 @@ salience 9000
 		update(turn);
 end
 
+rule "START OF TURN"
+	salience Math.min(8800 + c.getInitiative(),8899)
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action()
+		c : Creature(name == act.creatureName)
+	then
+	//TODO start of turn effects
+	System.out.println(c.getName()+": Start of turn");
+end
+
 rule "ATTACK"
-salience Math.min(8800 + c.getInitiative(),8899)
+salience Math.min(8700 + c.getInitiative(),8799)
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
@@ -40,7 +51,7 @@ salience Math.min(8800 + c.getInitiative(),8899)
 end
 
 rule "CAST"
-salience Math.min(8800 + c.getInitiative(),8899)
+salience Math.min(8700 + c.getInitiative(),8799)
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
@@ -54,7 +65,7 @@ salience Math.min(8800 + c.getInitiative(),8899)
 end
 
 rule "DODGE"
-salience Math.min(8800 + c.getInitiative(),8899)
+salience Math.min(8700 + c.getInitiative(),8799)
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
@@ -62,13 +73,13 @@ salience Math.min(8800 + c.getInitiative(),8899)
 		c : Creature(name == act.creatureName)
 		
 	then
-		//TODO cast
+		//TODO dodge
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 end
 
 rule "HELP"
-salience Math.min(8800 + c.getInitiative(),8899)
+salience Math.min(8700 + c.getInitiative(),8799)
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
@@ -76,13 +87,13 @@ salience Math.min(8800 + c.getInitiative(),8899)
 		c : Creature(name == act.creatureName)
 		
 	then
-		//TODO cast
+		//TODO help
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 end
 
 rule "HIDE"
-salience Math.min(8800 + c.getInitiative(),8899)
+salience Math.min(8700 + c.getInitiative(),8799)
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
@@ -90,7 +101,7 @@ salience Math.min(8800 + c.getInitiative(),8899)
 		c : Creature(name == act.creatureName)
 		
 	then
-		//TODO cast
+		//TODO hide
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 end

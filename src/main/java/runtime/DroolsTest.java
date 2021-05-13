@@ -80,6 +80,15 @@ public class DroolsTest {
             	Creature creature = (Creature) row.get("$result");
             	System.out.println(creature.getName()+": "+creature.getInitiative());
             });
+            for(int i = 0;i<10;i++) {
+            var act2 = new Action();
+        	act2.setCreatureName("Wander Hawke");
+        	act2.setType(Type.CAST);
+        	var fact2 = kSession.insert(act2);
+        	
+        	kSession.fireAllRules();
+            }
+        	
 //          int counter =0;
 //            while(true) {
 //            	System.out.println(counter++);
