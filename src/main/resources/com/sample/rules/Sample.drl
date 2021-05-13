@@ -1,0 +1,55 @@
+package com.sample.rules
+ 
+import creatures.*;
+import mechanics.*;
+ 
+rule "Roll for initiative"
+	salience 9001
+    when
+        turn : Turn(status == TurnState.INIT)
+        c : Creature(initiative == -9001)
+    then
+    	c.setInitiative(Utils.roll("1d20", c.getInitiativeAdvantage())+c.getInitiativeBonus());
+        System.out.println( "Initiative: " + c.getName() );
+        update( c );
+        
+end
+
+rule "FIGHT START"
+salience 9000
+	when
+		turn : Turn(status == TurnState.INIT)
+	then
+		System.out.println("Gabibbo");
+		turn.setStatus(TurnState.FIGHT);
+		update(turn);
+end
+
+rule "ATTACK"
+salience Math.min(8800 + c.getInitiative(),8899)
+	when
+		turn : Turn(status == TurnState.FIGHT)
+		act : Action(type == Action.Type.ATTACK)
+		c : Creature(name == act.creatureName)
+		
+	then
+		//TODO attack
+		System.out.println(c.getName()+": Attack");
+		c.setFought(true);
+end
+
+rule "CAST"
+salience Math.min(8800 + c.getInitiative(),8899)
+	when
+		turn : Turn(status == TurnState.FIGHT)
+		act : Action(type == Action.Type.CAST)
+		c : Creature(name == act.creatureName)
+		
+	then
+		//TODO cast
+		System.out.println(c.getName()+": Cast");
+		c.setFought(true);
+end
+
+
+
