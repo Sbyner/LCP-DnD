@@ -5,8 +5,8 @@ import mechanics.*;
  
 rule "Roll for initiative"
 	salience 9001
-    when
-        turn : Turn(status == TurnState.INIT)
+	when
+        turn : Turn(status == Turn.State.INIT)
         c : Creature(initiative == -9001)
     then
     	c.setInitiative(Utils.roll("1d20", c.getInitiativeAdvantage())+c.getInitiativeBonus());
@@ -18,17 +18,18 @@ end
 rule "FIGHT START"
 salience 9000
 	when
-		turn : Turn(status == TurnState.INIT)
+		turn : Turn(status == Turn.State.INIT)
 	then
 		System.out.println("Gabibbo");
-		turn.setStatus(TurnState.FIGHT);
+		turn.setStatus(Turn.State.FIGHT);
 		update(turn);
 end
 
 rule "ATTACK"
 salience Math.min(8800 + c.getInitiative(),8899)
+	activation-group "ACTION"
 	when
-		turn : Turn(status == TurnState.FIGHT)
+		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.ATTACK)
 		c : Creature(name == act.creatureName)
 		
@@ -40,8 +41,9 @@ end
 
 rule "CAST"
 salience Math.min(8800 + c.getInitiative(),8899)
+	activation-group "ACTION"
 	when
-		turn : Turn(status == TurnState.FIGHT)
+		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
 		c : Creature(name == act.creatureName)
 		
@@ -49,6 +51,52 @@ salience Math.min(8800 + c.getInitiative(),8899)
 		//TODO cast
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
+end
+
+rule "DODGE"
+salience Math.min(8800 + c.getInitiative(),8899)
+	activation-group "ACTION"
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action(type == Action.Type.DODGE)
+		c : Creature(name == act.creatureName)
+		
+	then
+		//TODO cast
+		System.out.println(c.getName()+": Cast");
+		c.setFought(true);
+end
+
+rule "HELP"
+salience Math.min(8800 + c.getInitiative(),8899)
+	activation-group "ACTION"
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action(type == Action.Type.HELP)
+		c : Creature(name == act.creatureName)
+		
+	then
+		//TODO cast
+		System.out.println(c.getName()+": Cast");
+		c.setFought(true);
+end
+
+rule "HIDE"
+salience Math.min(8800 + c.getInitiative(),8899)
+	activation-group "ACTION"
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action(type == Action.Type.HIDE)
+		c : Creature(name == act.creatureName)
+		
+	then
+		//TODO cast
+		System.out.println(c.getName()+": Cast");
+		c.setFought(true);
+end
+
+query "getCreatures"
+	$result: Creature()
 end
 
 

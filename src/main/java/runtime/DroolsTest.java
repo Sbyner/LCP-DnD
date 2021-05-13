@@ -13,9 +13,11 @@ import org.kie.api.event.rule.ObjectUpdatedEvent;
 import org.kie.api.event.rule.RuleRuntimeEventListener;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.QueryResults;
 
 import creatures.Creature;
 import mechanics.Action;
+import mechanics.Action.Type;
 import mechanics.Turn;
 import mechanics.Utils;
 
@@ -36,19 +38,19 @@ public class DroolsTest {
 				
 				@Override
 				public void objectUpdated(ObjectUpdatedEvent arg0) {
-					System.out.println(arg0);
+					System.out.println("Updated: "+arg0.getObject().toString());
 					
 				}
 				
 				@Override
 				public void objectInserted(ObjectInsertedEvent arg0) {
-					System.out.println(arg0);
+					System.out.println("Inserted: "+arg0.getObject().toString());
 					
 				}
 				
 				@Override
 				public void objectDeleted(ObjectDeletedEvent arg0) {
-					System.out.println(arg0);
+					System.out.println("Deleted: "+arg0.getOldObject().toString());
 					
 				}
 			});
@@ -73,18 +75,28 @@ public class DroolsTest {
             kSession.insert(creature5);
             kSession.fireAllRules();
             
-            int counter =0;
-            while(true) {
-            	var act = new Action();
-            	act.setCreatureName("Velthal");
-            	var fact = kSession.insert(act);
-            	System.out.println(counter++);;
-            	var act2 = new Action();
-            	act2.setCreatureName("Wander Hawke");
-            	var fact2 = kSession.insert(act2);
-            	kSession.fireAllRules();
-            	
-            }
+            QueryResults results = kSession.getQueryResults("getCreatures");
+            results.forEach(row->{
+            	Creature creature = (Creature) row.get("$result");
+            	System.out.println(creature.getName()+": "+creature.getInitiative());
+            });
+//          int counter =0;
+//            while(true) {
+//            	System.out.println(counter++);
+//            	
+//            	var act = new Action();
+//            	act.setCreatureName("Velthal");
+//            	act.setType(Type.ATTACK);
+//            	var fact = kSession.insert(act);
+//            	
+//            	var act2 = new Action();
+//            	act2.setCreatureName("Wander Hawke");
+//            	act2.setType(Type.CAST);
+//            	var fact2 = kSession.insert(act2);
+//            	
+//            	kSession.fireAllRules();
+//            	
+//            }
 
         } catch (Throwable t) {
             t.printStackTrace();

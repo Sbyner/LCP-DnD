@@ -1,13 +1,17 @@
 package mechanics;
 
 public class Turn {
-	TurnState status = TurnState.INIT;
+	State status = State.INIT;
 
-	public TurnState getStatus() {
+	public State getStatus() {
 		return status;
 	}
 
-	public void setStatus(TurnState status) {
+	public void setStatus(State status) {
 		this.status = status;
+	}
+	public enum State {
+		INIT,
+		FIGHT
 	}
 }

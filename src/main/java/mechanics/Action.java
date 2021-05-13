@@ -2,7 +2,9 @@ package mechanics;
 
 public class Action {
 	String creatureName;
+	String targetCreatureName;
 	Type type;
+	
 
 	public Type getType() {
 		return type;
@@ -24,6 +26,7 @@ public class Action {
 		ATTACK,
 		CAST,
 		DODGE,
-		READY
+		HELP,
+		HIDE,
 	}
 }
