@@ -1,9 +1,14 @@
 package mechanics;
 
+import java.util.LinkedList;
+
+import creatures.Creature;
+
 public class Action {
-	String creatureName;
-	String targetCreatureName;
+	Creature originCreature;
+	Creature targetCreature;
 	Type type;
+	LinkedList<Event> events = new LinkedList<Event>();
 	
 
 	public Type getType() {
@@ -13,15 +18,29 @@ public class Action {
 	public void setType(Type type) {
 		this.type = type;
 	}
-
-	public String getCreatureName() {
-		return creatureName;
-	}
-
-	public void setCreatureName(String creatureName) {
-		this.creatureName = creatureName;
-	}
 	
+	public LinkedList<Event> getEvents() {
+		return events;
+	}
+
+	public void setOriginCreature(Creature originCreature) {
+		this.originCreature = originCreature;
+	}
+
+	public void setTargetCreature(Creature targetCreature) {
+		this.targetCreature = targetCreature;
+	}
+
+	public Creature getOriginCreature() {
+		return originCreature;
+	}
+
+	public Creature getTargetCreature() {
+		return targetCreature;
+	}
+
+
+
 	public enum Type{
 		ATTACK,
 		CAST,

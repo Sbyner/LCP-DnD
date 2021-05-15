@@ -57,32 +57,32 @@ public class DroolsTest {
         	
 
             var turn = new Turn();
-            var creature1 = new Creature();
-            creature1.setName("Wander Hawke");
-            var creature2 = new Creature();
-            creature2.setName("Velthal");
-            var creature3 = new Creature();
-            creature3.setName("Shaw Penn");
-            var creature4 = new Creature();
-            creature4.setName("Elsa Tearblood");
-            var creature5 = new Creature();
-            creature5.setName("Agatha");
+            var wander = new Creature();
+            wander.setName("Wander Hawke");
+            var velthal = new Creature();
+            velthal.setName("Velthal");
+            var shaw = new Creature();
+            shaw.setName("Shaw Penn");
+            var elsa = new Creature();
+            elsa.setName("Elsa Tearblood");
+            var agatha = new Creature();
+            agatha.setName("Agatha");
             kSession.insert(turn);
-            kSession.insert(creature1);
-            kSession.insert(creature2);
-            kSession.insert(creature3);
-            kSession.insert(creature4);
-            kSession.insert(creature5);
+            kSession.insert(wander);
+            kSession.insert(velthal);
+            kSession.insert(shaw);
+            kSession.insert(elsa);
+            kSession.insert(agatha);
             kSession.fireAllRules();
             
             QueryResults results = kSession.getQueryResults("getCreatures");
             results.forEach(row->{
             	Creature creature = (Creature) row.get("$result");
-            	System.out.println(creature.getName()+": "+creature.getInitiative());
+            	System.out.println(creature.getName()+": "+creature.getStat("initiative"));
             });
             for(int i = 0;i<10;i++) {
             var act2 = new Action();
-        	act2.setCreatureName("Wander Hawke");
+        	act2.setOriginCreature(wander);
         	act2.setType(Type.CAST);
         	var fact2 = kSession.insert(act2);
         	

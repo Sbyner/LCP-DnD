@@ -1,16 +1,25 @@
 package mechanics.effects;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import creatures.Creature;
 import mechanics.Action;
 
-public abstract class Effect implements BiConsumer<Creature,Action>{
+public abstract class Effect implements Consumer<Action> {
 	onEvent trigger;
-	public void tick() {}
+	boolean over = false;
+
+	public void tick() {
+	}
+
+	public boolean isOver() {
+		return over;
+	}
+	
+	public void setOver() {
+		over = true;
+	}
 
 	public enum onEvent {
-		STARTOFTURN,
-		ACTION
+		STARTOFTURN, ACTION
 	}
 }

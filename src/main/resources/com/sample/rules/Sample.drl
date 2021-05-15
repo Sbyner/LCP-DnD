@@ -7,11 +7,11 @@ rule "Roll for initiative"
 	salience 9001
 	when
         turn : Turn(status == Turn.State.INIT)
-        c : Creature(initiative == -9001)
+        c : Creature()
     then
-    	c.setInitiative(Utils.roll("1d20", c.getInitiativeAdvantage())+c.getInitiativeBonus());
+    	c.setStatPerm("initiative",Utils.roll("1d20", c.getAdvantage("initiative"))+c.getBonus("initiative"));
         System.out.println( "Initiative: " + c.getName() );
-        update( c );
+        
         
 end
 
@@ -26,23 +26,23 @@ salience 9000
 end
 
 rule "START OF TURN"
-	salience Math.min(8800 + c.getInitiative(),8899)
+	salience 8800
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 	then
 	//TODO start of turn effects
 	System.out.println(c.getName()+": Start of turn");
 end
 
 rule "ATTACK"
-salience Math.min(8700 + c.getInitiative(),8799)
+salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.ATTACK)
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 		
 	then
 		//TODO attack
@@ -51,12 +51,12 @@ salience Math.min(8700 + c.getInitiative(),8799)
 end
 
 rule "CAST"
-salience Math.min(8700 + c.getInitiative(),8799)
+salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 		
 	then
 		//TODO cast
@@ -65,26 +65,26 @@ salience Math.min(8700 + c.getInitiative(),8799)
 end
 
 rule "DODGE"
-salience Math.min(8700 + c.getInitiative(),8799)
+salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.DODGE)
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 		
 	then
-		//TODO dodge
+		
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 end
 
 rule "HELP"
-salience Math.min(8700 + c.getInitiative(),8799)
+salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.HELP)
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 		
 	then
 		//TODO help
@@ -93,12 +93,12 @@ salience Math.min(8700 + c.getInitiative(),8799)
 end
 
 rule "HIDE"
-salience Math.min(8700 + c.getInitiative(),8799)
+salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.HIDE)
-		c : Creature(name == act.creatureName)
+		c : Creature(name == act.originCreature.name)
 		
 	then
 		//TODO hide
