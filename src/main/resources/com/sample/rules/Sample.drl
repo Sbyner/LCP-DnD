@@ -11,7 +11,7 @@ rule "Roll for initiative"
         turn : Turn(status == Turn.State.INIT)
         c : Creature()
     then
-    	c.setStatPerm("initiative",Utils.roll("1d20", c.getAdvantage("initiative"))+c.getBonus("initiative"));
+    	c.setStatPerm("initiative",Utils.roll("1d20", c.getAdvantage("initiative").getValue())+c.getBonus("initiative"));
         System.out.println( "Initiative: " + c.getName() );
         
         
@@ -35,10 +35,10 @@ rule "START OF TURN"
 		c : Creature(name == act.originCreature.name)
 	then
 	c.getEffects().stream().forEach(Effect::tick);
-	System.out.println(c.getName()+": effect tick");
     c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
     c.getStats().stream().forEach((x)->x.restoreValue());
-    c.getEffects().stream().forEach((x)->x.accept(act));
+    c.getAdvantages().stream().forEach((x)->x.restoreValue());
+    c.getEffects().stream().forEach((x)->x.onStartOfTurn(c, act));
 	System.out.println(c.getName()+": Start of turn");
 end
 
@@ -51,7 +51,12 @@ salience 8700
 		c : Creature(name == act.originCreature.name)
 		
 	then
-		//TODO attack
+		c.getEffects().stream().forEach((x)->x.onAttack(c,act));
+		act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(c,act));
+		if(Utils.roll("1d20",Utils.Advantage.NO)>=act.getTargetCreature().getStat("ca").getValue()){
+			
+		}
+		
 		System.out.println(c.getName()+": Attack");
 		c.setFought(true);
 end
@@ -79,7 +84,7 @@ salience 8700
 		c : Creature(name == act.originCreature.name)
 		
 	then
-		
+		c.getEffects().add(new Dodge());
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 end

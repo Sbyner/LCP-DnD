@@ -75,7 +75,7 @@ public class Main {
             kSession.fireAllRules();
             
             
-            
+            System.out.println(wander);
             QueryResults results = kSession.getQueryResults("getCreatures");
             results.forEach(row->{
             	Creature creature = (Creature) row.get("$result");

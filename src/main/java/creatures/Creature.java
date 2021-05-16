@@ -1,8 +1,10 @@
 package creatures;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import mechanics.Stat;
@@ -22,6 +24,8 @@ public class Creature {
 
 	public Creature() {
 		
+		
+		
 		stats.put("ca", new Stat<Integer>(Integer.valueOf(10)));
 		stats.put("strength", new Stat<Integer>(Integer.valueOf(10)));
 		stats.put("dexterity", new Stat<Integer>(Integer.valueOf(10)));
@@ -39,6 +43,10 @@ public class Creature {
 		advantage.put("wisdom", new Stat<Advantage>(Advantage.NO));
 		advantage.put("charisma", new Stat<Advantage>(Advantage.NO));
 		advantage.put("initiative", new Stat<Advantage>(Advantage.NO));
+		advantage.put("hit", new Stat<Advantage>(Advantage.NO));
+		
+		maxHp = Utils.roll((20+getBonus("constitution"))+"d8", Utils.Advantage.NO);
+		hp = maxHp;
 	}
 	
 	boolean fought=false;
@@ -46,6 +54,10 @@ public class Creature {
 	public void updateEffects(Set<Effect> newEffects) {
 		effects = new HashSet<Effect>(newEffects);
 	}
+	int hp;
+	int maxHp;
+	
+	String damage = "2d10";
 
 	String name = "UNNAMED";
 
@@ -66,8 +78,12 @@ public class Creature {
 		stats.get(id).modify((x)->value);
 	}
 	
-	public Advantage getAdvantage(String id) {
-		return advantage.get(id).getValue();
+	public Stat<Advantage> getAdvantage(String id) {
+		return advantage.get(id);
+	}
+	
+	public Collection<Stat<Advantage>> getAdvantages() {
+		return advantage.values();
 	}
 	
 	public int getBonus(String stat) {
@@ -94,6 +110,27 @@ public class Creature {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	@Override
+	public String toString() {
+		var res = "";
+		res+="========================================\n";
+		res+=name+"\n";
+		res+="HP: "+hp+"/"+maxHp+"\n";
+		var stats= this.stats.entrySet().stream().sorted(new Comparator<Entry<String, Stat<Integer>>>() {
+
+			@Override
+			public int compare(Entry<String, Stat<Integer>> arg0, Entry<String, Stat<Integer>> arg1) {
+				
+				return arg0.getKey().compareTo(arg1.getKey());
+			}
+		}).toArray();
+		for(var entry: stats) {
+			res+=((Entry)entry).getKey().toString()+": "+((Entry)entry).getValue().toString()+"\n";
+		}
+		res+="========================================\n";
+		return res;
 	}
 
 

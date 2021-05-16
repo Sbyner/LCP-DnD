@@ -2,6 +2,7 @@ package mechanics.effects;
 
 import creatures.Creature;
 import mechanics.Action;
+import mechanics.Utils.Advantage;
 
 public class Dodge extends Effect{
 	
@@ -10,13 +11,14 @@ public class Dodge extends Effect{
 		setOver();
 		
 	}
+
 	@Override
-	public void accept(Action arg1) {
-		if(!over) {
-			
+	public void onAttack(Creature creature, Action act) {
+		if(creature.equals(act.getTargetCreature())) {
+			act.getOriginCreature().getAdvantage("hit").modify((x)->Advantage.DISADVANTAGE);
 		}
-		
 	}
+
 
 
 
