@@ -30,6 +30,7 @@ public class Stat<T> {
 	}
 	 public void restoreValue() {
 		 tempModified = false;
+		 tempValue = value;
 	 }
 	 
 	 @Override

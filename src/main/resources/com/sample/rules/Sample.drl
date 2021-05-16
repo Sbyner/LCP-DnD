@@ -2,6 +2,8 @@ package com.sample.rules
  
 import creatures.*;
 import mechanics.*;
+import mechanics.effects.*;
+import java.util.stream.Collectors;
  
 rule "Roll for initiative"
 	salience 9001
@@ -32,7 +34,11 @@ rule "START OF TURN"
 		act : Action()
 		c : Creature(name == act.originCreature.name)
 	then
-	//TODO start of turn effects
+	c.getEffects().stream().forEach(Effect::tick);
+	System.out.println(c.getName()+": effect tick");
+    c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
+    c.getStats().stream().forEach((x)->x.restoreValue());
+    c.getEffects().stream().forEach((x)->x.accept(act));
 	System.out.println(c.getName()+": Start of turn");
 end
 
