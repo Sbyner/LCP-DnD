@@ -5,6 +5,7 @@ import mechanics.*;
 import mechanics.effects.*;
 import java.util.stream.Collectors;
 import mechanics.Turn.State;
+import mechanics.effects.Helped;
  
 rule "Roll for initiative"
 	salience 9001
@@ -155,25 +156,14 @@ salience 8700
 		c : Creature(name == act.originCreature.name)
 		
 	then
-		//TODO help
+		Helped help = new Helped(act.getTargetCreature());
+		act.getTargetCreature().getEffects().add(help);
+		insertLogical(help);
 		System.out.println(c.getName()+": Help");
 		c.setFought(true);
+		update(c);
 end
 
-rule "HIDE"
-lock-on-active
-salience 8700
-	activation-group "ACTION"
-	when
-		turn : Turn(status == Turn.State.FIGHT)
-		act : Action(type == Action.Type.HIDE)
-		c : Creature(name == act.originCreature.name)
-		
-	then
-		//TODO hide
-		System.out.println(c.getName()+": Hide");
-		c.setFought(true);
-end
 
 query "getCreatures"
 	$result: Creature()

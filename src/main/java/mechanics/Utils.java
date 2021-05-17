@@ -12,6 +12,25 @@ public abstract class Utils {
 		ADVANTAGE,
 		NO,
 		DISADVANTAGE
+		
+	}
+	
+	public static Advantage increaseAdvantage(Advantage advantage) {
+		switch (advantage) {
+		    case ADVANTAGE: return Advantage.ADVANTAGE;
+		    case NO: return Advantage.ADVANTAGE;
+		    case DISADVANTAGE: return Advantage.NO;
+		    default: return advantage;
+		}
+	}
+	
+	public static Advantage decreaseAdvantage(Advantage advantage) {
+		switch (advantage) {
+		    case ADVANTAGE: return Advantage.NO;
+		    case NO: return Advantage.DISADVANTAGE;
+		    case DISADVANTAGE: return Advantage.DISADVANTAGE;
+		    default: return advantage;
+		}
 	}
 	
 	public static int roll(String value, Advantage advantage) {
