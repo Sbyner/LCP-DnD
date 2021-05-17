@@ -48,4 +48,11 @@ public class Action {
 		HELP,
 		HIDE
 	}
+	
+	@Override
+	public String toString() {
+		String res="";
+		res+=originCreature.getName()+" "+type.name()+" "+targetCreature.getName();
+		return res;
+	}
 }

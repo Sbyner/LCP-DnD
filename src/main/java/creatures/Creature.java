@@ -7,11 +7,14 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.kie.api.definition.type.PropertyReactive;
+
 import mechanics.Stat;
 import mechanics.Utils;
 import mechanics.Utils.Advantage;
 import mechanics.effects.Effect;
 
+@PropertyReactive
 public class Creature {
 	
 	HashMap<String, Stat<Integer>> stats = new HashMap<String, Stat<Integer>>();
@@ -55,9 +58,25 @@ public class Creature {
 		effects = new HashSet<Effect>(newEffects);
 	}
 	int hp;
+	public int getHp() {
+		return hp;
+	}
+	
+	public void modifyHp(int mod) {
+		hp+=mod;
+	}
+
+	public void setHp(int hp) {
+		this.hp = hp;
+	}
+
 	int maxHp;
 	
 	String damage = "2d10";
+
+	public String getDamage() {
+		return damage;
+	}
 
 	String name = "UNNAMED";
 
@@ -114,7 +133,7 @@ public class Creature {
 	
 	@Override
 	public String toString() {
-		var res = "";
+		var res = "\n";
 		res+="========================================\n";
 		res+=name+"\n";
 		res+="HP: "+hp+"/"+maxHp+"\n";
@@ -126,12 +145,42 @@ public class Creature {
 				return arg0.getKey().compareTo(arg1.getKey());
 			}
 		}).toArray();
-		for(var entry: stats) {
-			res+=((Entry)entry).getKey().toString()+": "+((Entry)entry).getValue().toString()+"\n";
+		for(var obj: stats) {
+			var entry = (Entry<String, Stat<Integer>>) obj;
+			int bonusValue = getBonus(entry.getKey());
+			String bonus = bonusValue>=0 ? "+"+bonusValue:bonusValue+"";
+			res+=entry.getKey()+": "+entry.getValue().toString()+ ""+bonus+"\n";
 		}
 		res+="========================================\n";
 		return res;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Creature other = (Creature) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+	
+
 
 
 

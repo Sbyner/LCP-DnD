@@ -7,6 +7,7 @@ import creatures.Creature;
 import mechanics.Action;
 
 public abstract class Effect {
+	Creature creature;
 
 	boolean over = false;
 
@@ -19,6 +20,14 @@ public abstract class Effect {
 	
 	public void setOver() {
 		over = true;
+	}
+
+	public Creature getCreature() {
+		return creature;
+	}
+
+	public void setCreature(Creature creature) {
+		this.creature = creature;
 	}
 	
 	public void onStartOfTurn(Creature creature, Action act) {

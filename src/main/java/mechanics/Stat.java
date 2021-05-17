@@ -25,7 +25,7 @@ public class Stat<T> {
 		if (tempModified)
 			return tempValue;
 		else
-			return value;
+			return value; 
 
 	}
 	 public void restoreValue() {

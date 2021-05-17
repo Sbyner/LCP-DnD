@@ -4,6 +4,7 @@ import creatures.*;
 import mechanics.*;
 import mechanics.effects.*;
 import java.util.stream.Collectors;
+import mechanics.Turn.State;
  
 rule "Roll for initiative"
 	salience 9001
@@ -23,26 +24,72 @@ salience 9000
 		turn : Turn(status == Turn.State.INIT)
 	then
 		System.out.println("Gabibbo");
-		turn.setStatus(Turn.State.FIGHT);
+		turn.setStatus(Turn.State.TURNSTART);
 		update(turn);
 end
 
+rule "RETRACT EFFECTS"
+	salience 8900
+	when
+		turn : Turn(status == Turn.State.TURNSTART)
+		c : Creature(!fought)
+		act : Action(originCreature.name == c.name)
+		eff : Effect(creature.name == c.name)
+	then
+	System.out.println(c.getName()+": retracting "+eff.toString());
+	retract(eff);
+end
+
+rule "FIGHT STAGE"
+	salience 8900
+	when
+		turn : Turn(status == Turn.State.TURNSTART)
+		c : Creature(!fought)
+		act : Action(originCreature.name == c.name)
+		not Effect(creature.name == c.name)
+	then
+	modify(turn){setStatus(State.FIGHT)};
+end
+
 rule "START OF TURN"
+no-loop 
+	salience 8800
+	when
+		turn : Turn(status in (Turn.State.FIGHT))
+		act : Action()
+		c : Creature(name == act.originCreature.name)
+	then
+	//modify(turn){setStatus(State.FIGHT)};
+	//working? switch to purely rule-based approach
+	System.out.println(c.getName()+": Start of turn");
+	c.getEffects().stream().forEach((x)->x.tick());
+    c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
+    
+    c.getEffects().stream().forEach((x)->System.out.println(x));
+    
+    c.getStats().stream().forEach((x)->x.restoreValue());
+    c.getAdvantages().stream().forEach((x)->x.restoreValue());
+	for(Effect eff: c.getEffects()){
+		insertLogical( eff );
+	};
+	
+	System.out.println(c.getName()+": ============================ of turn");
+end
+
+rule "TEST DODGE"
 	salience 8800
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
 		c : Creature(name == act.originCreature.name)
+		Dodge()
 	then
-	c.getEffects().stream().forEach(Effect::tick);
-    c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
-    c.getStats().stream().forEach((x)->x.restoreValue());
-    c.getAdvantages().stream().forEach((x)->x.restoreValue());
-    c.getEffects().stream().forEach((x)->x.onStartOfTurn(c, act));
-	System.out.println(c.getName()+": Start of turn");
+	
+	System.out.println(c.getName()+": This is a dodge");
 end
 
 rule "ATTACK"
+lock-on-active 
 salience 8700
 	activation-group "ACTION"
 	when
@@ -52,16 +99,19 @@ salience 8700
 		
 	then
 		c.getEffects().stream().forEach((x)->x.onAttack(c,act));
-		act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(c,act));
-		if(Utils.roll("1d20",Utils.Advantage.NO)>=act.getTargetCreature().getStat("ca").getValue()){
-			
-		}
+		act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(act.getTargetCreature(),act));
+		if(Utils.roll("1d20",c.getAdvantage("hit").getValue())>=act.getTargetCreature().getStat("ca").getValue()){
+			System.out.println(c.getName()+" hit "+act.getTargetCreature().getName());
+			act.getTargetCreature().modifyHp(-Utils.roll(c.getDamage(), Utils.Advantage.NO));
+		} else System.out.println(c.getName()+" didn't hit "+act.getTargetCreature().getName());
 		
 		System.out.println(c.getName()+": Attack");
 		c.setFought(true);
+		update(c);
 end
 
 rule "CAST"
+lock-on-active
 salience 8700
 	activation-group "ACTION"
 	when
@@ -76,6 +126,7 @@ salience 8700
 end
 
 rule "DODGE"
+lock-on-active 
 salience 8700
 	activation-group "ACTION"
 	when
@@ -84,12 +135,18 @@ salience 8700
 		c : Creature(name == act.originCreature.name)
 		
 	then
-		c.getEffects().add(new Dodge());
-		System.out.println(c.getName()+": Cast");
+		Dodge dodge = new Dodge(c);
+		c.getEffects().add(dodge);
+		insertLogical(dodge);
+
+		System.out.println(c.getName()+": Dodge");
 		c.setFought(true);
+		update(c);
+		
 end
 
 rule "HELP"
+lock-on-active
 salience 8700
 	activation-group "ACTION"
 	when
@@ -99,11 +156,12 @@ salience 8700
 		
 	then
 		//TODO help
-		System.out.println(c.getName()+": Cast");
+		System.out.println(c.getName()+": Help");
 		c.setFought(true);
 end
 
 rule "HIDE"
+lock-on-active
 salience 8700
 	activation-group "ACTION"
 	when
@@ -113,7 +171,7 @@ salience 8700
 		
 	then
 		//TODO hide
-		System.out.println(c.getName()+": Cast");
+		System.out.println(c.getName()+": Hide");
 		c.setFought(true);
 end
 
