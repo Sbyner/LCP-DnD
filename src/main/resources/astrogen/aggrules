@@ -1,0 +1,316 @@
+% These are the aggregation rules
+% written as a meta interpreter
+% written by Hercules Dalianis November 1994
+% rewritten by Hercules Dalianis Mars 1995
+% rewritten by Hercules Dalianis Aug 1995
+				
+% Subject and predicate grouping		
+%subject_pred(f(pres,poss,john,car) & f(pres,poss,john,book),K)
+subject_pred(A,A)	:- literal(A).	
+subject_pred(A & B,C) :-  			% this below is new 17 Aug 95
+				literal(A),
+				literal(B),
+				A =.. L1,
+				B =.. L2,
+				subject_pred1(5,L1,L2,L3,L1,[]),   % sentences with same length 
+				C =.. L3.
+subject_pred(A & B,A & C) :-  			
+				literal(A),
+				literal(B),
+				A =.. L1,
+				B =.. L2,
+				length(L1,L), L > 1,
+				subject_pred2(5,L1,L2,L3,L1,[],_),   % sentences with different length 
+				C =.. L3.
+subject_pred(A & B & C,ABC) :- 
+				A =.. L1,
+				B =.. L2,
+				subject_pred1(5,L1,L2,L3,L1,[]),   % sentences with same length
+				NB =.. L3,
+				subject_pred(NB & C,ABC). 
+subject_pred(A & B & C, A & NBC) :- % A & 
+				A =.. L1,
+				B =.. L2,
+				length(L1,N),
+				length(L2,M),
+			 	not(M == N),
+				subject_pred2(5,L1,L2,L3,L1,[],AL),   % sentences with different length
+				C =.. L4,
+				subject_pred3(AL,L4,L5),
+				D =.. L3,
+				F =.. L5, 
+				subject_pred(D & F,NBC).	
+subject_pred(A & B,C):-
+				subject_pred(A,NA),
+				subject_pred(B,NB),
+				build_structure(NA & NB,C).
+					
+% subject_pred1(+Nr, +L1, +L2, -RL, +L1, +[]) sentences with same length
+% this predicate concatenates two lists and 
+% replaces a given argument
+subject_pred1(N,[],[],[],_,_).
+subject_pred1(N,[H1|T1],[H2|T2],[H3|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						not(L == N),
+						agg_compare(H1,H2,H3),
+						subject_pred1(N,T1,T2,T3,T,NR).
+subject_pred1(N,[A|T1],[B|T2],[C|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L == N,
+						not(A==B),
+						subject_pred(A & B,C),		% Hercules fix April 24, 1995 phonenumbers 100 101
+						subject_pred1(N,T1,T2,T3,T,NR).
+
+
+% subject_pred2(+Nr, +L1, +L2, -RL, +L1, +[], -AL) sentences with different length
+% this predicate adds empty lists in redundant positions of the next list 
+% +Nr is fixpoint
+% +L1, +L2, lists to compare
+% -RL resulting list 
+% +L1 number of elements
+% -AL aggregated elements previously
+subject_pred2(N,[],[],[],_,_,[]).
+subject_pred2(N,[],[H|T2],[H|T2],_,_,[]).
+subject_pred2(N,[H|T1],[],[],_,_,[]).
+subject_pred2(N,[H1|T1],[H2|T2],[H1|T3],[R|T],EL,[H1|AL]) :-			% f -> f
+						append([R],EL,NR),			
+		
+						length(NR,L),
+						not(number(H1)), % to fix the wall example
+						not(number(H2)),
+						L =< 2,
+						subject_pred2(N,T1,T2,T3,T,NR,AL).
+subject_pred2(N,[H1|T1],[H2|T2],[[H1]|T3],[R|T],EL,[H2|AL]) :-	
+						append([R],EL,NR),
+						length(NR,L),
+						H1 == H2,
+						not(L >= N), 
+						subject_pred2(N,T1,T2,T3,T,NR,AL).
+subject_pred2(N,[A|T1],[B|T2],[B|T3],[R|T],EL,AL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						not(number(A)),
+						not(number(B)),
+						L >= N,
+						not(A==B),
+						subject_pred2(N,T1,T2,T3,T,NR,AL).
+
+
+% subject_pred3(+redundant list elements, +L, -RL)
+%
+subject_pred3(_,[],[]).
+subject_pred3([],[T],[T]).		
+subject_pred3([H1|T1],[H2|T2],[H2|T3]) :- 
+				(not(H1 == H2); H2 == f;H2 == pres;H2 == past;H2 == fut),
+				subject_pred3(T1,T2,T3).	
+subject_pred3([H|T1],[H|T2],[[H]|T3]) :- 
+				subject_pred3(T1,T2,T3).
+	
+				
+
+% Predicate and direct object grouping
+% predicate_do(f(pres,poss,john,car) &f(pres,poss,mary,car),K). 
+% predicate_do(f(pres,state,john,marry) & f(pres,state,mary,marry),K).
+% predicate_do(f(pres,marry_rel,john,mary) & f(pres,marry_rel,mary,john),K).
+predicate_do(A,A)	:- literal(A).
+predicate_do(A & B,C) :- 
+				literal(A),
+				literal(B),
+				A =.. L1,
+				B =.. L2,
+				predicate_do1(4,L1,L2,L3,L1,[]),
+				C =.. L3.
+				%get_cue(P1 & P2,P3), 
+				%get_agree(P3,A2 & A3,A4), % make cue features
+				%predicate_do(A1&B1,C1).
+predicate_do(A & B & C,ABC) :- 	
+				A =.. L1,
+				B =.. L2,
+				predicate_do1(4,L1,L2,L3,L1,[]),
+				AB =.. L3,
+				%get_cue(P1 & P2,P3), % make cue features
+				%get_agree(P3,A2 & A3,A4),  
+				%predicate_do(A1 & B1,C1),
+				%AB =..[F,T,P3,C1,A4]
+				predicate_do(AB & C,ABC).
+predicate_do(A & B,AA & C):-
+				predicate_do(A,AA),
+				predicate_do(B,C).
+	
+% predicate_do1(+Nr, +L1, +L2, -RL, +L1, +[]).
+% this predicate concatinates two lists and 
+% replaces a given argument
+predicate_do1(N,[],[],[],_,_).
+predicate_do1(N,[],[H|T2],[H|T2],_,_).
+predicate_do1(N,[H|T1],[],[H|T1],_,_).
+predicate_do1(N,[P1|T1],[P2|T2],[P3|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						not(L == N),
+						get_cue(P1 & P2,P3),  
+						%get_agree(P3,A2 & A3,A4), 	% make cue features % pos 5
+						%predicate_do(A1&B1,C1),	% pos 6
+						predicate_do1(N,T1,T2,T3,T,NR).
+predicate_do1(N,[A|T1],[B|T2],[C|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L == N,
+						not(A==B),
+						predicate_do(A & B,C),	
+						predicate_do1(N,T1,T2,T3,T,NR).
+
+			
+% Symmetric relation aggregation
+% five arguments
+% sym_rel(f(pres,marry_rel,john,mary) & f(pres,marry_rel,mary,john),K).
+sym_rel(A,A)	:- literal(A).
+sym_rel(A & B,C) :- A =..[F,T,P1,A1,B1],
+				B =..[F,T,P2,B1,A1],
+				check_eq(P1,P2),
+				(get_cue(P1 & P2,P3/_); % remove cue features
+				get_cue(P1 & P2,P3)),
+				C =..[F,T,P3,A1 & B1,eq_rel].
+sym_rel(A & B & C,ABC) :- 
+				A =..[F,T,P1,A1,A2],
+				B =..[F,T,P2,A1,B2],
+				check_eq(P1,P2),
+				get_cue(P1 & P2,P3), %make cue features
+				AB =..[F,T,P3,A1,A2B2],
+				sym_rel(AB & C,ABC).
+sym_rel(A & B,AA & C):-
+				sym_rel(A,AA),
+				sym_rel(B,C).
+
+% Predicate grouping		
+% specifically for, assigned disjoint cue grouping
+% predicate(f(pres,poss/1,john,book) & f(pres,poss/2,mary,pen),K)
+predicate(A,A)	:- literal(A).
+predicate(A & B,C) :- 
+				A =..[F,T,P1,A1,A2],
+				B =..[F,T,P2,B1,A3],
+			/*	not(A = _/_),
+				not(B = _/_),
+				A =.. L1,
+				B =.. L2,
+				predicate1(3,L1,L2,L3,L1,[]),
+				C =.. L3. */
+				get_ass_cue(P1 & P2,P3), % make cue features
+				literal(P3),
+				get_ass_cue(A2 & A3,A4 & A5),
+				predicate(A1&B1,C1),
+				C =..[F,T,P3,C1,A4 & A5].
+predicate(A & B & C,ABC) :- 	
+				A =..[F,T,P1,A1,A2],
+				B =..[F,T,P2,B1,A3],
+				get_ass_cue(P1 & P2,P3),	% make cue features
+				literal(P3),
+				get_ass_cue(A2 & A3,A4 & A5), 
+				predicate(A1&B1,C1),
+				AB =..[F,T,P3,C1,A4 & A5],
+				predicate(AB & C,ABC).
+predicate(A & B,C & D):-
+				predicate(A,C),
+				predicate(B,D).
+				
+% predicate1(+Nr, +L1, +L2, -RL, +L1, +[]).
+% this predicate concatinates two lists and 
+% replaces a given argument
+predicate1(N,[],[],[],_,_).
+predicate1(N,[],[H|T2],[H|T2],_,_).
+predicate1(N,[H|T1],[],[H|T1],_,_).
+predicate1(N,[P1|T1],[P2|T2],[P2|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L =< 2,
+						%get_ass_cue(P1 & P2,P3), % make cue features
+						%literal(P3),
+						%get_ass_cue(A & B,A1 & B2),
+						%get_cue(P1 & P2,P3),  
+						predicate1(N,T1,T2,T3,T,NR).
+predicate1(N,[A|T1],[B|T2],[A1 & B2|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						not(L == N),L > 2,
+						%get_ass_cue(P1 & P2,P3), % make cue features
+						%literal(P3),
+						get_ass_cue(A & B,A1 & B2),
+						%get_cue(P1 & P2,P3),  
+						predicate1(N,T1,T2,T3,T,NR).
+predicate1(N,[P1|T1],[P2|T2],[P3|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L == N,
+						not(P1==P2),
+						get_ass_cue(P1 & P2,P3),
+						%predicate(P1 & P2,P3),	
+						predicate1(N,T1,T2,T3,T,NR).
+						
+% subject grouping		
+
+% subject(f(pres,poss/1,john,book) & f(pres,poss/2,john,pen),K)
+subject(A,A)	:- literal(A).
+subject(A & B,C) :- 
+				A =..[F,T,P1,S,A2],
+				B =..[F,T,P2,S,A3],
+				literal(S),
+				C =..[F,T,P1&P2,S,A2 & A3].
+subject(A & B & C,ABC) :- 	
+				A =..[F,T,P1,S,A2],
+				B =..[F,T,P2,S,A3],
+				literal(S),
+				AB =..[F,T,P1&P2,S,A2 & A3],
+				subject(AB & C,ABC).
+subject(A & B,C & D):-
+				subject(A,C),
+				subject(B,D).
+
+% Connects internal representation to lexical choice				
+agg_compare(A,A,A).%	:- atom(A).
+agg_compare(isa,state,isa_state).
+agg_compare(state,isa,isa_state).
+agg_compare(state,isa_state,isa_state).
+agg_compare(isa_state,state,isa_state).
+agg_compare(isa,isa_state,isa_state).
+agg_compare(isa_state,isa,isa_state).
+agg_compare(isa/N,state/M,isa_state).
+agg_compare(state/N,isa/M,isa_state).
+
+
+% Augments the internal structure with cue features
+get_cue((A/N) & (A/M),A/joint)	:-
+				N = M.
+get_cue((A/N) & (A/M),A/disj)	:-
+				not(N = M).			
+get_cue(A & A,A).
+
+get_agree(_/disj,(A/_) & (A/_),A/sing).
+get_agree(_/joint,(A/N) & (A/M),A/sing)	:-
+				N = M.	
+get_agree(_/joint,(A/N) & (A/M),A/plur)	:-
+				not(N = M).			
+get_agree(_,A & A,A).
+						
+
+get_ass_cue((A/N) & (A/M),A/ass):- 
+				not(N == M).	
+get_ass_cue((A/N) & (A/M),A/joint):- 
+				(N == M),
+				not(check_eq1(A,A)).					
+				
+get_ass_cue((A/N) & (B/M),(A/sing) & (B/sing)):- 
+				not(A == B),not(N == M).	
+get_ass_cue(A & B,A & B) :- 
+				not(A == B),
+				not(number(A)), 
+				not(number(B)).
+
+
+% Help predicate for the agg rule symmetric relation 
+check_eq(A/N,A/N) 	:- check_eq1(A,A).
+check_eq(A,A) 		:- check_eq1(A,A).
+
+check_eq1(marry_rel,marry_rel).
+check_eq1(different_rel,different_rel).
+

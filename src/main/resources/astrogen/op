@@ -1,0 +1,16 @@
+/* operators for paraphrasing written by Hercules Dalianis Jan 1990 */
+
+:- op(30,fx,¬).  		/* negation */
+:- op(30,fx,~).  		/* negation */
+
+:- op(150,xfy,->). 		/* implies */
+%:- op(100,xfy,->). 		/* implies */
+:- op(100,xfy,#).		/* or */
+:- op(100,xfy,&).		/* and */
+:- op(100,xfy,&#).		/* andor Vadim*/ 
+
+%:- op(99,xfx,=).		/* equal */
+% :- op(90,xfx,=).		/* equal */
+:- op(90,xfx, <>).		/* not equal */
+:- op(90,xfx, >).		/* greater than */
+:- op(90,xfx, < ).		/*  less than*/

@@ -1,5 +1,6 @@
 package mechanics;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,5 +57,21 @@ public abstract class Utils {
 	
 	public static int calculateBonus(int abilityScore) {
 		return (abilityScore/2)-5;
+	}
+	
+	public static ArrayList<Integer> getSlots(int level) {
+		var list = new ArrayList<Integer>();
+		list.add(0, -1);
+		list.add(1, 4);
+		list.add(2, 3);
+		list.add(3, 3);
+		list.add(4, 3);
+		list.add(5, 2);
+		list.add(6, 0);
+		list.add(7, 0);
+		list.add(8, 0);
+		list.add(9, 0);
+		return list;
+
 	}
 }

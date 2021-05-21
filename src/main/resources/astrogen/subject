@@ -1,0 +1,53 @@
+% subject grouping		
+
+% subject(f(pres,poss/1,john,book) & f(pres,poss/2,john,pen),K)
+subject(A,A)	:- literal(A).
+subject(A & B,C) :- 
+				A =..[F,T,P1,S,A2],
+				B =..[F,T,P2,S,A3],
+				literal(S),
+				C =..[F,T,P1&P2,S,A2 & A3].
+subject(A & B & C,ABC) :- 	
+				A =..[F,T,P1,S,A2],
+				B =..[F,T,P2,S,A3],
+				literal(S),
+				AB =..[F,T,P1&P2,S,A2 & A3],
+				subject(AB & C,ABC).
+subject(A & B,C & D):-
+				subject(A,C),
+				subject(B,D).
+				
+% subject1(+Nr, +L1, +L2, -RL, +L1, +[]).
+% this subject concatinates two lists and 
+% replaces a given argument
+subject1(N,[],[],[],_,_).
+subject1(N,[],[H|T2],[H|T2],_,_).
+subject1(N,[H|T1],[],[H|T1],_,_).
+subject1(N,[P1|T1],[P2|T2],[P2|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L =< 2,
+						%get_ass_cue(P1 & P2,P3), % make cue 
+features
+						%literal(P3),
+						%get_ass_cue(A & B,A1 & B2),
+						%get_cue(P1 & P2,P3),  
+						subject1(N,T1,T2,T3,T,NR).
+subject1(N,[A|T1],[B|T2],[A1 & B2|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						not(L == N),L > 2,
+						%get_ass_cue(P1 & P2,P3), % make cue 
+features
+						%literal(P3),
+						get_ass_cue(A & B,A1 & B2),
+						%get_cue(P1 & P2,P3),  
+						subject1(N,T1,T2,T3,T,NR).
+subject1(N,[P1|T1],[P2|T2],[P3|T3],[R|T],EL) :-
+						append([R],EL,NR),
+						length(NR,L),
+						L == N,
+						not(P1==P2),
+						get_ass_cue(P1 & P2,P3),
+						%subject(P1 & P2,P3),	
+						subject1(N,T1,T2,T3,T,NR).

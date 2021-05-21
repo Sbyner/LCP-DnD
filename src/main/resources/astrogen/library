@@ -1,0 +1,138 @@
+/* library written by Hercules Dalianis Nov 1994 */
+/* library rewritten by Hercules Dalianis Jan 1999 */
+
+
+
+literal(A)				:- 	var(A).
+literal(A) 				:-  	nonvar(A),
+						not(A = (_ ,  _)),
+						not(A = (¬_)),
+						not(A = (~_)),
+						not(A = (_ &  _)),
+						not(A = (_ # _)),
+						not(A = (_ ->  _)).
+						
+% conj_to_list/2
+conj_to_list(¬A,[¬A])		:- 	literal(A).
+conj_to_list(A,[A])			:- 	literal(A).
+conj_to_list(¬A & B,[¬A|NB])	:- 	literal(A),
+							conj_to_list(B,NB).
+conj_to_list(A & B,[A|NB])	:- 	literal(A),
+							conj_to_list(B,NB).
+
+
+%  (a & cc) & b & c  
+% removes "end" also
+build_structure(¬A, ¬A) :- !.
+build_structure(A, A) :- literal(A),!.
+build_structure(¬A & B, ¬A & NB) :- 
+							literal(A),!,
+						    	build_structure(B, NB).
+build_structure(A & B, A & NB) :- 
+							literal(A),!,
+						    	build_structure(B, NB).
+build_structure(A & B,  NA1 & C) :- 
+							literal(B),!,
+						    	build_structure( A, NA1 & NA2),
+							build_structure( NA2 & B, C).
+build_structure(A & B,  NA & NB) :- 
+						    	!,build_structure( A, NA & NA2),
+							build_structure( NA2 & B, NB).
+build_structure(A, A) :- !. % rest of cases. 
+
+
+pptnllist([H])		:- write(H),write('.'),nl,!.			% end period
+pptnllist([clause_and|T]) 	
+				:- linefeed(LF),write(and),nl,!,		
+				    pptnllist(T).						
+pptnllist([LF|T]) 	:- linefeed(LF),write(LF),nl,!,		
+				    pptnllist(T).		
+pptnllist([IF|T]) 	:- if(IF),write(IF),!,
+				    nl,write(' '),pptnllist(T). 		%write(' ')
+pptnllist([IF|T]) 	:- then(IF),nl,write(IF),!,
+			   	    nl,write(' '),pptnllist(T).		%write(' ')
+pptnllist([H1,H2|T])	:- period(H2),write(H1),pptnllist([H2|T]). %. ?
+pptnllist([H1,H2|T])	:- comma(H2),write(H1),pptnllist([H2|T]). %, ?			
+pptnllist([H|T])		:- write(H),write(' '),pptnllist(T).	%write(' ')
+
+
+
+if(if).
+then(then).
+period('.').
+comma(',').
+%linefeed(and).
+%linefeed(and).
+%linefeed(or).
+%linefeed(',').
+linefeed('.').
+and(and).
+
+
+pptwords([H])		:- write(H),write('.'),!,nl.
+pptwords([H|T]) 	:- write(H),write('.'),nl,!,
+				    pptwords(T).
+
+
+capital_letter([H1|T1], [H2|T2]) :- 
+				upp_case(H1,H2),
+				capital_letter1(T1,T2).
+
+
+capital_letter1([],[]).
+capital_letter1([H1,H2|T1],[H1,UC|T2]) :-  
+						   not(pronoun(_,_,H2,_,_)),
+						   (H1 == clause_and;
+					           H1 == (.)),		
+						   upp_case(H2,UC),
+						  capital_letter1(T1,T2).
+capital_letter1([H1|T1],[H2|T2]) :-  
+						   propernoun(_,_,H1,_,_),	
+						   upp_case(H1,H2),
+						  capital_letter1(T1,T2).			
+capital_letter1([H|T1],[H|T2]) :- capital_letter1(T1,T2).
+
+upp_case(H,UC) :-  exploden(H,[EX|T]),
+			       EX < 123,EX > 96,  % lower case?
+			       NEX is EX - 32,
+			       exploden(UC,[NEX|T]).
+upp_case(H,H).	
+
+%remove_and(L1,L2)	:- reverse(L1,L3),
+%				    remove_and1(L3,L4),
+%				    reverse(L4,L2).
+
+remove_and([H],[H]) :- period(H).
+remove_and([H],[H]).
+remove_and([H|T1],[H|T2]) :- period(H),
+					remove_and(T1,T2).
+remove_and([H|T1],[','|T2]) :-  and(H),
+					next_and(and,T1),
+					remove_and(T1,T2).
+remove_and([H|T1],[H|T2]) :- 
+					remove_and(T1,T2).					
+
+next_and(H, [H|_]) :- !.
+next_and(X, [H|T]) :-
+			not(period(H)),
+    			next_and(X, T).
+
+    	
+
+set(A)		:- 	functor(A,P,ARG),
+			  	functor(NEWA,P,ARG),
+				 retractall(NEWA),fail.
+set(A)		:- 	assert(A).		
+
+next_time(T):-
+	now(T0),
+	T is T0 + 1.
+set_time(T):-
+	set(now(T)).
+reset_time :-
+	set_time(0).
+	
+tick(T):-
+	retract(now(PT)),
+	T is PT + 1,
+	assert(now(T)).

@@ -1,0 +1,159 @@
+/* This is the surface grammar of the aggregation */
+/* written by Hercules Dalianis Nov 1994 		   */
+/* rewritten by Hercules Dalianis Sept 1995 	   */
+
+% john is a man and is tall.
+% john calls mary
+% john gives mary a book
+% john who is a man, gives mary a book.
+% john mary are persons.
+% john has a red car.
+% john and mary walk together to a shop.
+% john is equally well a man and a subscriber
+% john is a man but also a subscriber
+% john and mary are  subscribers and john  is  busy  and mary  is  idle.
+% john and mary work  on  weekdays  and not  friday.
+
+% neither john nor mary walk to a shop.
+
+% Top predicate for the surface generator
+surface(IN,UT)		:- 	strip_of_time(IN,NT),
+					s(NT,UT,[]),!.
+
+
+% one value intransitive verbs
+s(f(T,P,A))			-->   np(AGR,A),
+					vp(T,AGR,P).
+
+% one value
+s(f(T,P,A) & F)		-->   np(AGR,A),
+					vp(T,AGR,P),
+				    	clause_conj(and),
+					s(F).
+
+% two value transitive verbs
+s(f(T,P,A,B))		-->   np(AGR,A),
+					vp(T,AGR,P),
+					prep(P,B),
+					{isa_state(P,AGR,NEWAGR)},  % if isa or state then unify AGR
+					np(NEWAGR,B),  
+					cue(P).
+					
+% two value					
+s(f(T,P,A,B) & F)	-->   np(AGR,A),
+					vp(T,AGR,P),
+					prep(P,B),
+					{isa_state(P,AGR,NEWAGR)},  % if isa or state then unify AGR
+					np(NEWAGR,B),	
+				        clause_conj(and),
+				       	s(F).
+					
+% three value (give) ditransitive verbs or number of
+s(f(T,P,A,B,C))	-->   	s(f(T,P,A,B)),
+					prep(P,C),
+					np(_,C),
+					cue(P).
+
+% three value (give) 
+s(f(T,P,A,B,C) & F)-->   	s(f(T,P,A,B)),
+					prep(P,C),
+					np(_,C),
+					clause_conj(and),
+					s(F).				
+					
+np(plur,A & B) 		-->  np(sing,A),conj(and),np(sing,B).
+%np(plur,A & B) 		-->  np(plur,A),conj(and),np(plur,B).
+np(sing,A & B) 		-->  np(sing,A),conj(and),np(sing,B).
+
+np(plur,A # B) 		-->  np(sing,A),[or],np(sing,B).
+np(sing,A # B) 		-->  np(sing,A),[or],np(sing,B).
+ 
+% translates cue features to agreement 
+
+np(_,N/CUE) 		-->  {number(CUE)},np(AGR,N).
+np(_,N/CUE) 		-->  {cue_to_agr(CUE,AGR)},np(AGR,N).
+np(AGR,A/dem) 	--> det(AGR,A/dem),noun(AGR,GEND,A).
+
+np(AGR,¬A) 		--> [not],np(AGR,A).
+np(AGR,card(A,L)) 	--> det(AGR,L),noun(plur,GEND,A).
+np(AGR,A) 		--> det(AGR,A),noun(AGR,GEND,A).
+np(AGR,A) 		--> adj(AGR,A).
+
+% attr
+np(AGR,f(T,S,A,B)) --> det(AGR,B),adj(AGR,B),noun(AGR,GEND,A).
+np(AGR,f(T,S,A,B)) --> det(AGR,B),noun(AGR,GEND,A),numberstar(AGR,B).
+np(AGR,A) 		--> propernoun(sing,GEND,A).
+np(AGR,f(T,S,pro(A),B)) 	
+				--> {get_pronoun(A,PRO,AGR)},[PRO].
+np(AGR,pro(A)) 	--> {get_pronoun(A,PRO,AGR)},[PRO].
+
+
+
+
+% verb phrase
+% filter ditranstive verb features
+vp(T,AGR,P) 			--> verb(_,T,AGR,P).	
+vp(T,AGR,P/CUE) 		--> {number(CUE)},verb(_,T,AGR,P).
+vp(T,AGR,P/CUE) 		--> verb(_,T,AGR,P).	
+
+
+% verb phrase
+vp(T,AGR,P)			--> verb(T,AGR,P).
+vp(T,AGR,¬P)			--> verb(T,AGR,P),neg(¬).
+vp(T,AGR,P1&P2) 		--> verb(T,AGR,P1),conj(and),verb(T,AGR,P2).	
+vp(T,AGR,P/CUE) 		--> {number(CUE)},verb(T,AGR,P). %prep(P).
+vp(T,AGR,P/CUE) 		--> verb(T,AGR,P). %prep(P).
+
+% numbers 
+numberstar(_,A)		--> {number(A)},[A].
+numberstar(plur,A & B)	--> {number(A)},[A],conj(and),numberstar(_,B).
+
+
+% filter prep
+% out commented Oct 20, 1995 
+% verb(A,B,P/_)			--> verb(A,B,P). % filter prep
+
+
+get_pronoun(A,P,AGR) :- get_gend(A,GEND),
+				    	pronoun(AGR,GEND,P,_,_).
+
+get_pronoun(A,P,AGR) :- get_agr(A,AGR),
+				    	pronoun(AGR,GEND,P,_,_).
+
+cue_to_agr(joint,sing).
+cue_to_agr(disj,plur). 
+cue_to_agr(ass,sing).
+cue_to_agr(sing,sing).
+cue_to_agr(plur,plur).
+			    
+get_agr(A&B,plur) 	:- nonvar(A),nonvar(B).
+get_agr(A,sing) 	:- nonvar(A),literal(A).
+get_agr(A,plur) 	:- nonvar(A),literal(A).
+
+get_gend(P,GEND)	:- noun(_,GEND,P,_,_).
+get_gend(P,GEND)	:- pronoun(_,GEND,P,_,_).
+get_gend(P,GEND)	:- propernoun(_,GEND,P,_,_).
+
+
+isa_state(P,AGR,AGR)	
+				:- (P = isa;P =state; P = isa_state).
+isa_state(P,_,_).
+
+ditransitive(P)	:- 	verb(ditr,_,_,P,_,_).
+
+strip_of_time(F,NF)    :- literal(F),
+					F =.. FL,
+					reverse(FL,[H|RFL]),
+					((number(H);H = T & _,number(T)),
+					reverse(RFL,NFL),
+					NF =.. NFL;
+					reverse([H|RFL],NFL),
+					NF =.. NFL).
+strip_of_time(A & B,NA & NB)
+				   :- 
+				   strip_of_time(A,NA),
+				   strip_of_time(B,NB).
+
+
+
+				

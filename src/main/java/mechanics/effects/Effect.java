@@ -1,7 +1,5 @@
 package mechanics.effects;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import creatures.Creature;
 import mechanics.Action;

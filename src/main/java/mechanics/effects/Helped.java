@@ -9,6 +9,7 @@ public class Helped extends Effect {
 		this.creature=targetCreature;
 	}
 	
+	@Override
 	public void onAttack(Creature creature, Action act) {
 		System.out.println("IN HELP APPLICATION: "+creature.getName()+" - "+act.getTargetCreature().getName());
 		if(creature.equals(act.getOriginCreature())) {

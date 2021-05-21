@@ -17,6 +17,7 @@ public class Dodge extends Effect{
 	}
 
 	
+	@Override
 	public void onAttack(Creature creature, Action act) {
 		System.out.println("IN DODGE APPLICATION: "+creature.getName()+" - "+act.getTargetCreature().getName());
 		if(creature.equals(act.getTargetCreature())) {

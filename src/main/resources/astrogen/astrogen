@@ -1,0 +1,38 @@
+/* init file written by Hercules Dalianis Nov 1994      */
+/* for the aggregation system                                   */
+/* Rewritten Jan 97 for the ASTROGEN system             */
+/* Rewritten Jan 99 for SICStus Prolog			          */
+
+:- nl,write('Loading ASTROGEN... ').
+
+%These are for AAIS Prolog
+%:- no_style_check(all).
+%:- style_check(different_file).
+%:- unknown(_,fail).
+%:- handle_illegal_args(_,fail).
+
+%If one uses SICStus Prolog then one should
+%use the two predicates below
+% One need the file sicslib if you use SICStus Prolog
+:- reconsult(sicslib). 
+:- prolog_flag(single_var_warnings,_,off).
+
+
+:- reconsult(op).
+:- reconsult(library).
+:- reconsult(tools).
+:- reconsult(grammar).
+:- reconsult(lexicon).
+:- reconsult(aggrules).
+:- reconsult(pronoun).
+:- reconsult(bl_rules).
+:- reconsult(ub_rules).
+:- reconsult(sorting).
+:- reconsult(permut).
+
+
+%:- reconsult(domain).
+
+
+:- nl,write('ASTROGEN loaded!'),nl.
+

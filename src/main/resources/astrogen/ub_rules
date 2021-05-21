@@ -1,0 +1,135 @@
+% Unbounded lexical aggregation rule
+% Written by Hercules Dalianis Oct 1995
+%	
+% call_action
+ub_lex_set(f(T,call_action,X,Y,A),
+			[f(T,make_offhook,X,B) ,
+			f(T,dial_action,X,Y,C)],
+			[f(T,poss,X,dial_tone,D),
+			f(T,poss,X,ring_tone,E),
+			f(T,poss,Y,ring_signal,F) ,
+			f(T,make_offhook,Y,G) ,
+			f(T,speech_connection,X,Y,H)]).
+
+
+% discuss_rel
+ub_lex_set(f(T,discuss_rel,X,Y,A),
+			[f(T,communication_action,X,Y,B),
+			f(T,communication_action,Y,X,C)],
+			[f(T,communication_action,X,Y,D),
+			f(T,communication_action,Y,X,E)]).	
+
+% fight_action
+ub_lex_set(f(T,fight_rel,X,Y,A),	
+	 		[f(T,bad_action,X,Y,B), 
+			f(T,bad_action,Y,X,C)], 
+			[f(T,bad_action,X,Y,D),
+			f(T,bad_action,Y,X,E)]).					
+
+% marry_rel
+ub_lex_set(f(T,marry_rel,X,Y,A),
+			[f(T,marry_rel,X,Y,B),
+			f(T,marry_rel,Y,X,C)],
+			[]).
+		
+% generalizations
+gen(f(T,hit_action,X,Y,T2), f(T,bad_action,X,Y,_)).
+gen(f(T,punch_action,X,Y,T2), f(T,bad_action,X,Y,_)).
+gen(f(T,kick_action,X,Y,T2), f(T,bad_action,X,Y,_)).
+gen(f(T,insult_action,X,Y,T2), f(T,bad_action,X,Y,_)).
+gen(f(T,insult_action,X,Y,T2), f(T,communication_action,X,Y,_)).
+gen(f(T,greet_action,X,Y,T2), f(T,communication_action,X,Y,_)).
+gen(f(T,talk_action,X,Y,T2), f(T,communication_action,X,Y,_)).
+gen(f(T,write_action,X,Y,T2), f(T,communication_action,X,Y,_)).
+gen(A, A).
+
+			
+un_bound_lex(IN,CLT) :-  conj_to_list(IN,L),
+					check_ub_lexis(L,RL,WL),
+					conj_to_list(W,WL),
+					(not(RL == []),conj_to_list(E,RL),
+					build_structure(W & E,CLT);
+					(RL == [],W = CLT)).
+	
+
+% checks recursively for unbounded lexical aggregations
+
+check_ub_lexis(L,RRL,NW) :- 	
+					check_ub_lex(L,RL,W1,NW1),
+					check_ub_lexis(RL,RRL,NW2),
+					append([NW1],NW2,NW).
+check_ub_lexis(L,RRL,[NW]) :- check_ub_lex(L,RRL,W,NW).
+					
+
+check_ub_lex(L,RL,W,NW) :- ub_lex_set(W,[H|VL],NVL),
+					check_vital_list([H|VL],L,NL,T1),
+					check_non_vital_list(NVL,NL,RL,T2),
+					append(T1,T2,T), %!,
+					add_time(W,T,NW).
+	
+	
+%check_vital_list(+Vital_list,+Input,-Rest_list,-Time) 
+% checks for vital predicate for doing unbounded lexical aggregation
+check_vital_list([],A,A,[])  :- !.
+check_vital_list(L,[Y|T],NT,[Time|NTime]) :- 
+		gen(Y,YG),
+		remove_member(YG,L,NL),
+		get_time(Y,Time),
+		check_vital_list(NL,T,NT,NTime),!.
+check_vital_list(L,[Y|T],[Y|R],Time) :-  
+ 		check_vital_list(L,T,R,Time),! .
+
+				   
+%check_non_vital_list(+Non_Vital_list,+Input,-Rest_list,-Time) 
+% checks for non vital predicate for doing unbounded lexical aggregation
+check_non_vital_list(_,[],[],[]) :- !.
+check_non_vital_list(L,[Y|T],NT,[Time|NTime]) :- 
+		gen(Y,YG),
+		member(YG,L),
+		get_time(Y,Time),
+		check_non_vital_list(L,T,NT,NTime),!.
+check_non_vital_list(L,[Y|T],[Y|NT],Time) :-
+ 		check_non_vital_list(L,T,NT,Time),!.
+
+remove_member(X,[X|T],T).
+remove_member(X,[Y|T],[Y|NT]) :- 
+		remove_member(X,T,NT).
+
+
+get_time(F,T)	:- 		literal(F),
+					F =.. FL,
+					reverse(FL,[T|RFL]),
+					(number(T);day(T)).
+
+% 					
+add_time(F,T,NF)	:- 	literal(F),
+					F =.. FL,
+					reverse(FL,[OT|RFL]),
+					conj_to_list(CT,T),
+					(number(OT);day(OT)),
+					reverse([CT|RFL],NFL),
+					NF =.. NFL,!.
+
+					
+day(monday).
+day(tuesday).
+day(wednesday).
+day(thursday).
+day(friday).
+day(saturday).
+day(sunday).
+
+% time predicates
+%consequtive(A)	:-  consequtive1(A),
+				     
+				   
+/*
+consequtive1(A)	:-  literal(A), 
+				    A = ..  L ,
+				    reverse(L,[T|_]),
+				    tick(T).
+consequtive1(A & B):- consequtive1(A),
+				     consequtive1(B).
+				
+				
+*/

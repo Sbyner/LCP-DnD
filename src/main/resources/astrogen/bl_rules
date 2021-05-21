@@ -1,0 +1,49 @@
+% bounded lexical aggregation
+% Written by Hercules Dalianis 1994
+
+b_lex_set(weekday,[monday,tuesday,wednesday,thursday,friday]).
+b_lex_set(week,[monday,tuesday,wednesday,thursday,friday,saturday,sunday]).
+
+bound_lex(IN,UT) :- IN =.. [F,T,PRED,ARG1,ARG2],
+				bound_lex1(ARG2,CL),
+				UT =.. [F,T,PRED,ARG1,CL].
+bound_lex(IN,UT) :- IN =.. [F,T,PRED,ARG1,ARG2,ARG3],
+				bound_lex1(ARG3,CL),
+				 UT =.. [F,T,PRED,ARG1,ARG2,CL].
+bound_lex(A & B,NA & NB)
+				 :- bound_lex(A,NA),
+				     bound_lex(B,NB).
+bound_lex(IN,IN).
+
+% replaces the bound lexical aggregands
+bound_lex1(IN,UT) :-    conj_to_list(IN,AL),
+				     b_lex_set(W,L),
+				     length(L,NL),
+				     comp_intersection(L,AL,E),
+				     length(AL,NA),
+				     N is NL/2,
+				     =<(N,NA),
+				     ((conj_to_list(CE,E),
+				     UT = W & ¬CE);(UT = W)).
+		
+% comp_intersection([a,b,c],[a,b],[c]).	 
+
+comp_intersection(L1,L2,L3) :- 
+	comp_intersection1(L1,L2),
+	comp_intersection2(L1,L2,L3).
+ 
+comp_intersection1(_,[]).
+comp_intersection1(L,[Y|T]) :- 
+		member(Y,L),
+		comp_intersection1(L,T).
+				   
+comp_intersection2([],X,[]).
+comp_intersection2([X|R],Y,[X|Z]) :- 
+		not(member(X,Y)),
+		!,
+		comp_intersection2(R,Y,Z).
+comp_intersection2([X|R],Y,Z) :- 
+		comp_intersection2(R,Y,Z).
+
+			     
+				     

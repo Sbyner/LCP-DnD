@@ -1,0 +1,36 @@
+% Pronomina and pronominalization
+% written by Hercules Dalianis Nov 1994
+%
+
+% Pronominalization
+pronoun(A,A)	    :- literal(A).
+% five arguments
+%pronoun(f(pres,poss,john,car) & f(pres,poss,john,book),K)
+pronoun(A & B,A & NB) :- 
+				A =..[F,T,P1,A1,A2],
+				B =..[F,T,P2,B1,B2],
+				(A1 = B1; A1 = pro(B1)),
+				make_pronoun(B1,PRO),
+				NB =..[F,T,P2,PRO,B2].
+pronoun(A & B & C, A & NC) :- 
+				A =..[F,T,P1,A1,A2],
+				B =..[F,T,P2,B1,B2],
+				(A1 = B1; A1 = pro(B1)),
+				make_pronoun(B1,PRO),
+				NB =..[F,T,P2,PRO,B2],
+				pronoun(NB & C,NC).
+pronoun(A & B,AA & C):-
+				pronoun(A,AA),
+				pronoun(B,C).
+					
+% make_pronoun
+make_pronoun(P, pro(P)) :-
+				(get_gend(P, GEND);(P = A & B)),
+   				get_agr(P, AGR),
+    				pronoun(AGR, GEND, PRON,_,_).
+
+make_pronoun(f(F,T,P,A),f(F,T,pro(P),A)) :-
+				get_gend(P, GEND),
+   				get_agr(P, AGR),
+    				pronoun(AGR, GEND, PRON,_,_).
+

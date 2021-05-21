@@ -1,0 +1,19 @@
+% library to be used together with SICStus Prolog
+% when running ASTROGEN, since not all predicates
+% are pre-defined i SICStus prolog
+% written by Hercules Dalianis April 1998.
+
+
+
+not(A) :- \+(A).
+
+member(X, [X|_]).
+member(X, [_|L]) :- member(X, L).
+
+append([ ], L,L).
+append([H|T],L, [H|M]) :- append(T,L,M).
+
+reverse([ ], [ ]).
+reverse([X|T], Z) :- reverse(T,Y),append(Y, [X],Z).
+
+exploden(A,B) :- name(A,B).

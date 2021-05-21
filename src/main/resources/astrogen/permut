@@ -1,0 +1,105 @@
+% Permut written by Hercules Dalianis Dec 1994
+
+% top_permute(+textplan)
+top_permute(Plan) :- 
+%	top_permute_ordering(Plan,PlanL),
+%	top_permute_agg_list(PlanL).
+	top_permute_agg_list(Plan).
+	
+top_permute_agg_list([]).
+top_permute_agg_list([L|T]) :- 
+	conj_to_list(C,L),
+	top_permute_agg(C),
+	top_permute_agg_list(T).
+
+% top_permute_agg(+textplan) 
+% result print all NL text after been aggregated
+top_permute_agg(Textplan) :-
+%	permut([subject_pred,predicate_do,bound_lex],[],L),	
+permut([pos_subject_pred,pos_predicate_do,pos_bound_lex,pos_un_bound_lex],[],L),
+%permut([sort_conj132,predicate_do,sort_conj213,subject_pred,bound_lex,sort_conj123],[],L),	
+%	permut([ord213_subject_pred,ord123_predicate_do,ord132_bound_lex],[],L),	
+	call_predicate_lists(L,Textplan).	
+	
+	
+% top_permute_ordering(+textplan, -list_of_permuted_textplans).
+top_permute_ordering(IN,PINL) :- 
+	conj_to_list(IN,LIN),
+	permut(LIN,[],PINL),
+	list_of_list_to_conj(RESL,PINL).
+
+
+% gives all possible permutations of a list
+% permut([a,b,c],[],LL).
+% permut([subject_pred,predicate_do,bound_lex],[],LL).
+permut(S,L,LL)	:- 
+	permut2(S,M),
+	not(member(M,L)),
+	append([M],L,NL),
+	permut(M,NL,LL).
+permut(S,L,L).
+
+permut2(L,M) :- 
+	append(X,T1,L),
+	permut3(T1,T2),
+	append(X,T2,M),
+	not(L = M).
+
+
+permut3([],[]) :- !.
+permut3([A,B|T1],[B,A|T2]) :- 
+	permut3(T1,T2),!.
+permut3(L,L).
+
+
+% Adds orderrules at the end of each list and then creates variable of arity 2
+% on each element of the list and executes and prints the result. 
+% call_predicate_lists([[predicate, subject]......],Textplan).
+call_predicate_lists([],Textplan).
+call_predicate_lists([H|T],Textplan) :- 
+	%add_order_predicate_list(H,[sort_conj123,sort_conj132,sort_conj213],NHL),
+	call_predicate_list(H,Textplan),
+	call_predicate_lists(T,Textplan).
+
+% Adds orderrules at the end of each list 
+add_order_predicate_list(L,[],[]).
+add_order_predicate_list(L,[H|T],[NL|NT]) :- 
+	append(L,[H],NL),
+	add_order_predicate_list(L,T,NT).
+
+% executes and prints the result
+% call_predicate_list(+List of aggregtion rules,Textplan)
+call_predicate_list(H,Textplan)	:- 
+	call_predicate_list1(H,Textplan,OUT),
+	write(H),nl,
+	write(OUT),nl,
+	surface(OUT,NL),
+	pptnllist(NL),
+	write('length '),length(NL,N),
+	write(N),nl.
+
+% executes each predicate	
+call_predicate_list1([],A,A).
+call_predicate_list1([H|T],IN,OUT) :- 
+	NH =.. [H,IN,B], 
+	call(NH),
+	call_predicate_list1(T,B,OUT).
+
+/*	
+call_predicate_lists([[pos_predicate_do,pos_subject_pred,pos_bound_lex]],f(pres,isa,joh
+n,subscriber) &
+			f(pres,state,john,idle) &
+			f(pres,poss,john,f(pres,attr,phonenumber,100)) &
+			f(pres,poss,john,f(pres,attr,phonenumber,101)) &
+			f(pres,redirect_action,john,phone_call) &
+			f(pres,redirect_action,john,phonenumber,mary) &
+			f(pres,isa,mary,subscriber) &
+			f(pres,state,mary,idle) &
+			f(pres,poss,mary,f(pres,attr,phonenumber,200))).
+	*/
+	
+list_of_list_to_conj([],[]).
+list_of_list_to_conj([H|T],[NH|NT]) :- 
+	conj_to_list(NH,H),
+	list_of_list_to_conj(T,NT).
+	

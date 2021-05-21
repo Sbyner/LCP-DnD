@@ -5,8 +5,9 @@ import mechanics.*;
 import mechanics.effects.*;
 import java.util.stream.Collectors;
 import mechanics.Turn.State;
-import mechanics.effects.Helped;
- 
+import mechanics.effects.*;
+import mechanics.spells.*;
+
 rule "Roll for initiative"
 	salience 9001
 	when
@@ -37,7 +38,7 @@ rule "RETRACT EFFECTS"
 		act : Action(originCreature.name == c.name)
 		eff : Effect(creature.name == c.name)
 	then
-	System.out.println(c.getName()+": retracting "+eff.toString());
+	System.out.println(eff.getCreature().getName()+": retracting "+eff.toString());
 	retract(eff);
 end
 
@@ -49,14 +50,18 @@ rule "FIGHT STAGE"
 		act : Action(originCreature.name == c.name)
 		not Effect(creature.name == c.name)
 	then
-	modify(turn){setStatus(State.FIGHT)};
+	System.out.println("TURNSTART => FIGHT");
+	turn.setStatus(State.FIGHT);
+	update(turn);
+	//update(act);
+	//update(c);
 end
 
 rule "START OF TURN"
 no-loop 
 	salience 8800
 	when
-		turn : Turn(status in (Turn.State.FIGHT))
+		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
 		c : Creature(name == act.originCreature.name)
 	then
@@ -66,41 +71,79 @@ no-loop
 	c.getEffects().stream().forEach((x)->x.tick());
     c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
     
-    c.getEffects().stream().forEach((x)->System.out.println(x));
+    //c.getEffects().stream().forEach((x)->System.out.println(x));
     
     c.getStats().stream().forEach((x)->x.restoreValue());
     c.getAdvantages().stream().forEach((x)->x.restoreValue());
 	for(Effect eff: c.getEffects()){
 		insertLogical( eff );
 	};
-	
+	//update(turn);
+	//update(act);
+	//update(c);
 	System.out.println(c.getName()+": ============================ of turn");
 end
 
-rule "TEST DODGE"
-	salience 8800
+rule "APPLY DODGE"
+	salience 8750
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
 		c : Creature(name == act.originCreature.name)
-		Dodge()
+		dodge : Dodge(creature.name == act.targetCreature.name)
 	then
+	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.decreaseAdvantage(x));
+	System.out.println(act.getTargetCreature().getName()+": This is a dodge: dodging "+c.getName());
+end
+
+rule "APPLY HELP"
+	salience 8750
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action()
+		c : Creature(name == act.originCreature.name)
+		help : Helped(creature.name == c.name)
+	then
+	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.increaseAdvantage(x));
+	help.setOver();
+	System.out.println(act.getOriginCreature().getName()+": This is help: helping "+act.getTargetCreature().getName());
+end
+
+rule "APPLY PHANTASMAL KILLER"
+no-loop 
+	salience 8750
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action()
+		c : Creature(name == act.originCreature.name)
+		pk : PhantasmalKillerEffect(creature.name == c.name)
+	then
+	int saveThrow = Utils.roll("1d20",c.getAdvantage("wisdom").getValue())+c.getBonus("wisdom");
+	if(saveThrow >= pk.getDc()){
+		pk.setOver();
+		retract(pk);
+		System.out.println(c.getName()+" PASSED PK SAVING THROW");
+	}
+	else{
+		int damage = Utils.roll("4d10",Utils.Advantage.NO);
+		System.out.println(c.getName()+" DIDN'T PASS PK SAVING THROW: HIT FOR "+damage+" HP");
+		c.modifyHp(-damage);
+		retract(act);
+	}
 	
-	System.out.println(c.getName()+": This is a dodge");
 end
 
 rule "ATTACK"
-lock-on-active 
 salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.ATTACK)
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name, fought == false)
 		
 	then
-		c.getEffects().stream().forEach((x)->x.onAttack(c,act));
-		act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(act.getTargetCreature(),act));
+		//c.getEffects().stream().forEach((x)->x.onAttack(c,act));
+		//act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(act.getTargetCreature(),act));
 		if(Utils.roll("1d20",c.getAdvantage("hit").getValue())>=act.getTargetCreature().getStat("ca").getValue()){
 			System.out.println(c.getName()+" hit "+act.getTargetCreature().getName());
 			act.getTargetCreature().modifyHp(-Utils.roll(c.getDamage(), Utils.Advantage.NO));
@@ -112,18 +155,24 @@ salience 8700
 end
 
 rule "CAST"
-lock-on-active
 salience 8700
 	activation-group "ACTION"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
-		c : Creature(name == act.originCreature.name)
-		
+		c : Creature(name == act.originCreature.name, fought == false)
 	then
-		//TODO cast
+		Spell spell = SpellFactory.getSpell(act.getArgs());
+		if(c.slotsAvailable(spell)){
+		insert(spell);
+		c.castSpell(spell);
+		}else{
+		insert(new Fumble());
+		}
+		
 		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
+		update(c);
 end
 
 rule "DODGE"
@@ -133,12 +182,11 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.DODGE)
-		c : Creature(name == act.originCreature.name)
-		
+		c : Creature(name == act.originCreature.name, fought == false)
 	then
 		Dodge dodge = new Dodge(c);
 		c.getEffects().add(dodge);
-		insertLogical(dodge);
+		insert(dodge);
 
 		System.out.println(c.getName()+": Dodge");
 		c.setFought(true);
@@ -153,15 +201,54 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.HELP)
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name, fought == false)
 		
 	then
 		Helped help = new Helped(act.getTargetCreature());
 		act.getTargetCreature().getEffects().add(help);
-		insertLogical(help);
+		insert(help);
 		System.out.println(c.getName()+": Help");
 		c.setFought(true);
 		update(c);
+end
+
+rule "CAST MAGIC MISSILE"
+salience 8700
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action(type == Action.Type.CAST)
+		c : Creature(name == act.originCreature.name)
+		mm : MagicMissile()
+	then
+		int damage = Utils.roll("3d4", Utils.Advantage.NO)+3;
+		act.getTargetCreature().modifyHp(-damage);
+		System.out.println(c.getName()+": Magic Missile for "+damage+" HP on "+act.getTargetCreature().getName());
+		retract(mm);
+end
+
+rule "CAST PHANTASMAL KILLER"
+salience 8700
+	when
+		turn : Turn(status == Turn.State.FIGHT)
+		act : Action(type == Action.Type.CAST)
+		c : Creature(name == act.originCreature.name)
+		pk : PhantasmalKiller(  )
+	then
+		System.out.println("APPLYING PHANTASMAL KILLER");
+		System.out.println("ACT NULL: "+act.getTargetCreature());
+		Creature target = act.getTargetCreature();
+		
+		int saveThrow = Utils.roll("1d20",target.getAdvantage("wisdom").getValue())+target.getBonus("wisdom");
+		int dc = 8 + c.getBonus("wisdom");
+		if(saveThrow < dc){
+		System.out.println(c.getName()+": PK on "+act.getTargetCreature().getName());
+		PhantasmalKillerEffect pkEff = new PhantasmalKillerEffect(act.getTargetCreature());
+		pkEff.setDc(dc);
+		act.getTargetCreature().getEffects().add(pkEff);
+		}else{
+		System.out.println(c.getName()+": PK didn't land on "+act.getTargetCreature().getName());
+		}
+		retract(pk);
 end
 
 

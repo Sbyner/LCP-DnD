@@ -4,13 +4,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
 import creatures.Creature;
 import mechanics.ActionFeeder;
 import mechanics.Turn;
+import mechanics.Turn.State;
 
 public class Fight {
 	public KieSession getSession() {
@@ -58,9 +58,11 @@ public class Fight {
 	Turn turn = new Turn();
 	HashMap<Creature, FactHandle> handles = new HashMap<Creature, FactHandle>();
 	ActionFeeder feeder;
-
+	FactHandle turnHandle;
+	
 	public void setup() {
-		session.insert(turn);
+		
+		turnHandle = session.insert(turn);
 		for (var creature : creatures) {
 			handles.put(creature, session.insert(creature));
 		}
@@ -68,7 +70,7 @@ public class Fight {
 		creatures.sort(new Comparator<Creature>() {
 			@Override
 			public int compare(Creature arg0, Creature arg1) {
-				return arg0.getName().compareTo(arg1.getName());
+				return arg1.getStat("initiative").getValue()- arg0.getStat("initiative").getValue();
 			}
 		});
 		
@@ -78,7 +80,10 @@ public class Fight {
 		boolean running = true;
 		while(running) {
 			for(var creature: creatures) {
+				System.out.println(creature.getName()+" PORCODDIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 				creature.setFought(false);
+				turn.setStatus(State.TURNSTART);
+				session.update(turnHandle, turn);
 				session.update(handles.get(creature), creature);
 				var act = feeder.feed(creature, creatures);
 				var actHandle = session.insert(act);

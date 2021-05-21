@@ -1,0 +1,318 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.5 (Macintosh; I; PPC) [Netscape]">
+   <title>ASTROGEN documentation</title>
+<!-- This document was created from RTF source by rtftohtml 
+version
+2.7.5 -->
+</head>
+<body bgcolor="#FFFFCC">
+
+<h1>
+ASTROGEN - Aggregated deep and Surface naTuRal language GENerator&nbsp;<br>
+<br>
+<a href="http://www.dsv.su.se/~hercules">Hercules Dalianis</a></h1>
+Department of Computer and Systems Sciences
+<br>The Royal Institute of Technology and
+<br>Stockholm University
+<br>Electrum 230, S-164 40 Kista
+<br>SWEDEN
+<p>ph (+46) 8 16 49 16
+<br>mob. ph. (+46) 70 568 13 59
+<br>fax. (+46) 8 703 90 25
+<br><b>Email: </b><a href="mailto:hercules@dsv.su.se">hercules@dsv.su.se</a>
+<h2>
+<a NAME="RTFToC4"></a>Introduction</h2>
+ASTROGEN is a Natural Language Generator written in Prolog. Which hopefully
+can be used by almost anybody. ASTROGEN has been used for generation of
+natural language (English) from formal specifications and STEP/EXPRESS
+Specifications. ASTROGEN consists basically of two modules the Deep and
+the Surface generator.
+<p>The Surface generator is a DCG surface grammar (File: grammar) where
+the terminals are the lexical items (File: lexicon)
+<br>The Deep generator consists of a number of modules for carrying out
+the aggregation.
+<p>Syntactic aggregation (File: aggrules)
+<p>Bounded Lexical aggregation (File: bl_rules)
+<p>Unbounded Lexical aggregation (File: ub_rules)
+<p>Pronominalisation (File: pronoun)
+<p>The control or top level loop of ASTROGEN is the (File: tools)
+<p>Remaining files to talk about later.
+<p>:- reconsult(op).
+<p>:- reconsult(library).
+<p>:- reconsult(sorting).
+<p>:- reconsult(permut).
+<h2>
+ASTROGEN Architecture</h2>
+<img SRC="ASTROGEN.GIF" </P >
+<br>Figure 1 ASTROGEN Architecture
+<p>The modules within the green border (see Figure 1) are contained in
+the ASTROGEN system. To adapt the ASTROGEN system to any other system a
+translation has to be made from the other systems representation to ASTROGEN's
+f-structures, There is a basic lexicon avalaible within ASTROGEN but for
+domain specific terms a new one has to be written. ASTROGEN does not contain
+a real text planner but a sentence planner which is specialized in aggregation.
+<h2>
+Download files</h2>
+<a href="http://www.dsv.su.se/~hercules/ASTROGEN/astrogen.zip">astrogen.zip</a>
+<p>(Totally 15 files )
+<h2>
+<a NAME="RTFToC5"></a>Loading</h2>
+To load ASTROGEN start Prolog and consult the (File: astrogen).
+<br>If one uses SICStus Prolog check in the file ASTROGEN to change some
+directives and also
+<br>to consult SICSlib.
+<p><i>?- consult(astrogen)</i>
+<p><i>Loading ASTROGEN...</i>
+<p><i>ASTROGEN loaded!</i>
+<p><i>?-</i>
+<h2>
+<a NAME="RTFToC6"></a>Control</h2>
+Toplevel predicates in the (File: tools)
+<p>paraphrase(+IN) where IN is an input of frametype, the answer is an
+NL string
+<p>paraphrase(+IN, -NL) where IN is an input of frametype, the answer is
+a list of NL
+<p>Input IN = f(T,P,Arg1,Arg2,Arg3)
+<p>IN can have optional numbers of arguments Arg.
+<p>T = {past, pres, fut} is the time predicates
+<p>P is some sort of predicate, (relation) verb E.g lexical items <i>are,
+have, dials,</i> see (File: lexicon)
+<p>Arg1, Arg2, and Arg3 are subjects (entitities) nouns, pronouns, E.g.
+lexical items
+<i>John, subscriber,</i> see (File: lexicon).
+<br>/* This does not work
+<p>Arg3 can be a cardinality relation represented by arg3 = card(entity,[n,m])).
+<p>E.g. <i>f(pres,poss,person,card(child,[1,3])).</i>
+<br>*/
+<p>IN can have the structure IN1 &amp; IN2 &amp; .... INn
+<p>Deep generation top level predicate is
+<p>deep(+IN,-OUT)
+<p>Deep generation is controled by the following switches
+<h2>
+<a NAME="RTFToC7"></a>Example</h2>
+<i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp; f(pres,state,john,busy) &amp; f(pres,state,mary,idle)).</i>
+<p><i>John is a subscriber and</i>
+<br><i>Mary is a subscriber and</i>
+<br><i>John is busy and</i>
+<br><i>Mary is idle.</i>
+<br><i>yes</i>
+<br><i>?-</i>
+<h2>
+<a NAME="RTFToC8"></a>Switches (File: tools)</h2>
+all_rules/0 switches on all aggregation rules
+<p>normal/0 switches off all aggregation rules
+<p>user_help/0. tells which the switches are
+<p><i>?- user_help.</i>
+<p><i>These are all the switches for aggregation</i>
+<br><i>One can also use set(SWITCH(no)) to remove it</i>
+<p><i>&nbsp; subject_pred</i>
+<br><i>&nbsp;predicate_do</i>
+<br><i>&nbsp;subject</i>
+<br><i>&nbsp;predicate</i>
+<br><i>&nbsp;sym_rel</i>
+<br><i>&nbsp;pronoun</i>
+<br><i>&nbsp;bound_lex</i>
+<br><i>&nbsp;un_bound_lex</i>
+<br><i>&nbsp;clause_comma</i>
+<br><i>&nbsp;canned_text</i>
+<br><i>&nbsp;canned_example</i>
+<br><i>yes</i>
+<br><i>?-</i>
+<h2>
+<a NAME="RTFToC9"></a>Syntactic aggregation</h2>
+subject_pred/0 switches on subject and predicate aggregation (grouping)
+<p>predicate_do/0 switches on predicate and direct object aggregation
+<p>predicate/0 switches on predicate aggregation
+<p>sym_rel/0 switches on symmetric relation aggregation
+<p><i>?- all_rules.</i>
+<p><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp; f(pres,state,john,busy) &amp; f(pres,state,mary,idle) ).</i>
+<p><i>John and Mary are subscribers and</i>
+<br><i>John is busy and</i>
+<br><i>Mary is idle.</i>
+<br><i>yes</i>
+<h2>
+<a NAME="RTFToC10"></a>Lexical aggregation</h2>
+bound_lex/0 switches on bounded lexical aggregation (File: tools)
+<p>un_bound_lex/0 switches on unbounded lexical aggregation
+<p>surface(+IN, -NL).
+<p>IN = (T,P,Arg1,Arg2,Arg3) a frame structure which might be aggregated.
+<p>NL is a natural language list.
+<h2>
+<a NAME="RTFToC11"></a>Pronominalization</h2>
+pronoun/0 switches on pronominalization (File: tools)
+<p>E.g.
+<p><i>?- normal.</i>
+<br><i>yes</i>
+<p><i>?- predicate_do.</i>
+<br><i>yes</i>
+<p><i>?- pronoun.</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp;</i>
+<br><i>f(pres,state,john,idle) &amp; f(pres,state,mary,idle) ).</i>
+<p><i>John and Mary are subscribers and</i>
+<br><i>they are idle.</i>
+<br><i>yes</i>
+<h2>
+<a NAME="RTFToC12"></a>Sentence delimitation</h2>
+clause_comma/0 switches on generation of comma delimiters of clauses
+<p>I.e. instead of generating 'and' between clauses f-structures commas
+are generated.
+<p><i>?- clause_comma.</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp; f(pres,state,john,busy) &amp; f(pres,state,mary,idle)).</i>
+<p><i>John and Mary are subscribers.</i>
+<br><i>John is busy.</i>
+<br><i>Mary is idle.</i>
+<br><i>yes</i>
+<br><i>?-</i>
+<h2>
+<a NAME="RTFToC13"></a>Hybrid text generation (only to be used with interface)</h2>
+&nbsp;canned_text/0
+<br>&nbsp;canned_example/0
+<p>These two above predicates switches on hybrid textgeneration.
+<br>Hybrid text generation is mixture of normal text generation (from f-structures)
+and canned text generation
+<br>(already ready text)
+<br>To perform hybrid textgeneration one needs to create an extra predicate.
+<br>Canned text cannot be processed by the paraphrase/0 predicate.
+<p>I.e. information which is not availables as f-structure but as canned
+text.
+<h2>
+<a NAME="RTFToC14"></a>Sorting /* This does not work correctly due to introduced
+bugs */</h2>
+Because of the implementation of the aggregation rules sorting predicate
+for the clauses was necessary.(This implentation could have been made different
+and will eventually be changed by using a stack to keep track of which
+clauses have been aggregated) The sorting predicate keeps track of the
+clauses in the discourse and decides in which order to aggregate but also
+in which order to generate. However the control by the user can only be
+for the order of generation of clauses.
+<p>Below the clause syntax
+<p>f(pres, Predicate, Subject, Object).
+<p>The clauses can now be ordered according to the keys Predicate(key 1),
+Subject (key 2), and Object (key 3), by giving them various priorities.
+The ordering rule order the clauses in a text plan according to the weights
+of that rule. The weights correspond to the predicate, subject and object
+of the clause. E.g. the 3,2,1 ordering means that the predicate has the
+highest priority to be ordered followed by the subject and finally the
+object.
+<p>Different sorting order could for example be 1,3,2 or 2,1,3 or 1,3,2.
+<p>e.g. (File: tools)
+<p>:- sort(1,2,3)
+<p>:- sort(2,1,3)
+<p>:- sort( 1,3,2).
+<p>to remove all sorting
+<p>:- sort(n,n,n).
+<p><i>?- all_rules.</i>
+<p><i>yes</i>
+<p><i>?- sort(1,2,3).</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp; f(pres,state,john,idle) &amp; f(pres,state,mary,busy) ).</i>
+<p><i>john and mary are subscribers and</i>
+<br><i>john is idle and</i>
+<br><i>mary is busy.</i>
+<br><i>yes</i>
+<p><i>?- sort(2,1,3).</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp;</i>
+<br><i>f(pres,state,john,idle) &amp; f(pres,state,mary,busy) ).</i>
+<p><i>john is idle and</i>
+<br><i>mary is busy and</i>
+<br><i>john and mary are subscribers.</i>
+<br><i>yes</i>
+<p><i>?- sort( 1,3,2).</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,isa,john,subscriber) &amp; f(pres,isa,mary,subscriber)
+&amp;</i>
+<br><i>f(pres,state,john,idle) &amp; f(pres,state,mary,busy) ).</i>
+<p><i>john and mary are subscribers and</i>
+<br><i>mary is busy and</i>
+<br><i>john is idle.</i>
+<br><i>yes</i>
+<h2>
+<a NAME="RTFToC15"></a>?- Customization and new domains</h2>
+To extend the system for new domains
+<br>Either extend lexicon and/or grammar, best way to do extension is to
+construct a new domain lexicon in a separate file which has to be consulted
+<u>not</u>
+reconsulted because that will remove all information stored in (file:lexicon)
+<p>For SICStus Prolog do not forget to declare all new predicates which
+are defined in many different files as multifile.
+<br>E.g. :- multifile noun/5, verb/5, adj/4,propernoun/5,conj/3,cue/3.
+<p>See file (File:lexicon) to see the syntax of the lexicon.
+<p>Add two new Prolog clauses (one for singular and for plural form) to
+add the noun
+<i>product</i>
+<p><i>noun(sing,neut,product) --> [product].</i>
+<p><i>noun(plur,neut,product) --> [products].</i>
+<p>the second argument is the gender
+<p>mask = maskulinum, fem = femininum and neut = neutrum
+<p>Then reconsult the (File: lexicon)
+<br>Add four new Prolog clauses to add the verb <i>belong to </i>(singular,
+plural, past, present and future tense)
+<p><i>verb(pres,sing,belong_rel) --> [belongs,to].</i>
+<p><i>verb(pres,plur,belong_rel) --> [belong,to].</i>
+<p><i>verb(past,_,belong_rel) --> [belonged,to].</i>
+<p><i>verb(fut,_,belong_rel) --> [will, belong,to].</i>
+<h2>
+<a NAME="RTFToC16"></a>Special cases for attributes or states</h2>
+One can nest f-structures in some cases specifically to generate attributes
+or states of entities.
+<p><i>?- paraphrase(f(pres,poss,john,f(pres,state,car,red))).</i>
+<p><i>John has a red car.</i>
+<br><i>yes</i>
+<h2>
+<a NAME="RTFToC17"></a>Cue word generation</h2>
+There are possibilities to put markers on words to distinguish if they
+are the same instance or not e.g. <i>subscriber/1</i> and <i>subscriber/1</i>.
+ASTROGEN will then augment the aggregate sentence with cue words e.g <i>each,
+together, respectively.</i>
+<p>These markers must be integers if one put the same number on two different
+instance then they are the same. If one put different numbers they are
+different instances.
+<p>This feature can be used for other purposes as well. To control the
+generation of sentences like <i>the other subscriber </i>This is not implemented
+yet.
+<br>/* These work partly, there is a newly introduced bug
+<p><i>?- paraphrase(f(pres,poss/1,john,book/1)&amp;f(pres,poss/2,mary,book/2)).</i>
+<br><i>John and Maryhave a book <b>each</b>.</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,poss/1,john,book/1)&amp;f(pres,poss/1,mary,book/1)).</i>
+<br><i>John and Maryhave a book <b>together</b>.</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,poss/1,john,book/1)&amp;f(pres,poss/2,mary,pen/1)).</i>
+<br><i>John and Maryhave a book and a pen <b>respectively</b>.</i>
+<p><i>yes</i>
+<p>*/
+<h2>
+<br>
+<a NAME="RTFToC18"></a>Blocking generation of lexical objects</h2>
+If one puts square brackets around the objects in the f-structure the generation
+of these becames blocked
+<p><i>?- normal.</i>
+<br><i>yes</i>
+<p><i>?- paraphrase(f(pres,poss,john,ring_tone) &amp; f(pres,call_action,
+[john],mary) &amp;</i>
+<br><i>f(pres,poss, mary,ring_signal)).</i>
+<p><i>John has a ringtone and</i>
+<br><i>Calls Mary and</i>
+<br><i>Mary has a ringsignal.</i>
+<br><i>yes</i>
+<h2>
+<a NAME="RTFToC19"></a>Dynamic or temporal control</h2>
+Consecutive time point must block aggregation.
+<p>(Not ready yet)&nbsp;
+<hr><i>Latest update&nbsp; January 27, 1999</i>
+<br>&nbsp;
+</body>
+</html>

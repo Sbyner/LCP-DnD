@@ -1,0 +1,141 @@
+% Ordering written by Hercules Dalianis November 1994
+% rewritten December 1994
+% rewritten September 1995
+
+%sort priority
+% 123, 213, 132 
+sort_conj(K,N,M,IN,OUT) :- 
+	conj_to_list(IN,L),
+	sort_list(K,N,M,L,[],SL),
+	conj_to_list(OUT,SL).
+
+		
+% leo wanner's sort
+% priority 
+% sort_list
+sort_list(K,N,M,[],T,T).
+sort_list(K,N,M,[H|T],L,RES):- 
+		sort_list1(K,N,M,H,L,NL),
+		sort_list(K,N,M,T,NL,RES).
+
+
+% sort_list1/6
+sort_list1(_,_,_,Key,[],[Key]).
+sort_list1(1,_,_,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,_,_)),
+		make_three(FA1,f(_,Pred,_,_)),
+		order_pred(Pred,B).
+sort_list1(_,1,_,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,_,C,_)),
+		make_three(FA1,f(_,_,Arg1,_)),
+		order_pred(Arg1,C).
+sort_list1(_,_,1,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,_,_,D)),
+		make_three(FA1,f(_,_,_,Arg2)),
+		order_pred(Arg2,D). 		
+sort_list1(2,N,M,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		(N = 1,my_equal(Arg1,C);M =1,my_equal(Arg2,D)),
+		order_pred(Pred,B).
+sort_list1(K,2,M,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		(K = 1, my_equal(Pred,B);M =1,my_equal(Arg2,D)),
+		order_pred(Arg1,C).
+sort_list1(K,N,2,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		(K =1,my_equal(Pred,B);N =1,my_equal(Arg1,C)),
+		order_pred(Arg2,D).
+sort_list1(3,_,_,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		my_equal(Arg1,C),
+		my_equal(Arg2, D),
+		order_pred(Pred,B).
+sort_list1(_,3,_,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		my_equal(Pred, B),
+		my_equal(Arg2, D),
+		order_pred(Arg1,C).
+sort_list1(_,_,3,FA1,[FA|T],[FA1,FA|T]) :-
+		make_three(FA,f(_,B,C,D)),
+		make_three(FA1,f(_,Pred,Arg1,Arg2)),
+		my_equal(Pred,B),
+		my_equal(Arg1, C),
+		order_pred(Arg2,D).
+sort_list1(K,N,M,Key,[H|T1],[H|T2]) :-
+		sort_list1(K,N,M,Key,T1,T2).
+		
+		
+make_three(IN,UT) :- 
+		IN =.. [f,A,B,C,D|_],
+		UT =.. [f,A,B,C,D].
+make_three(IN,UT) :- 
+		IN =.. [f,A,B,C],
+		UT =.. [f,A,B,C,_].
+
+
+% ordering predicates subject etc..
+order_pred(A,[B])	:- order_pred(A,B). % for ordering aggregated objects
+order_pred([A],B)	:- order_pred(A,B).
+order_pred([A],[B])	:- order_pred(A,B).		
+		
+order_pred(A,A)	:- !,fail.
+order_pred(A & B,C) :- literal(C).
+order_pred(isa,state).
+order_pred(isa,poss).
+order_pred(state,poss).
+order_pred(isa_state,state).
+order_pred(isa_state,poss).
+order_pred(isa_state,poss).
+
+
+% state walk_action
+order_pred(A,B)  :- order_type(A),
+				not(order_type(B)).
+% not walk_action poss
+order_pred(B,A)  :- order_type(B),
+				order_pred(A,B), 
+				!, fail.
+% not poss state etc
+order_pred(A,B)  :- not(order_type(A)),
+				order_type(B),
+				!, fail.		
+		
+order_pred(A,B) :- literal(A),literal(B),order_alp(A,B).
+
+
+/*
+order_alp(monday,tuesday).
+order_alp(monday,wednesday).
+order_alp(monday,thursday).
+order_alp(monday,friday).
+
+order_alp(tuesday,wednesday).
+order_alp(tuesday,thursday).
+order_alp(tuesday,friday).
+
+order_alp(wednesday,thursday).
+order_alp(wednesday,friday).
+
+order_alp(thursday,friday).
+*/
+
+order_alp(X,Y) :- b_lex_set(_,L),member(X,L),!,fail. % week
+order_alp(X,Y) :- not(number(X)),number(Y),!.
+order_alp(X,Y) :- number(X),not(number(Y)),!,fail.
+order_alp(X,Y) :- sort([X,Y],[X,Y]).
+
+
+order_type(isa_state).
+order_type(isa).
+order_type(state).
+order_type(poss).
+
+my_equal(A,B)			:- A = B.
+my_equal(A,[B])		:- A = B.
+my_equal([A],B)		:- A = B.
+my_equal([A],[B])		:- A = B.

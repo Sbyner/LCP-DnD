@@ -12,8 +12,11 @@ public class AttackWanderFeeder implements ActionFeeder {
 		var act = new Action();
 		if (originCreature.getName().equals("Wander Hawke")) {
 			act.setOriginCreature(originCreature);
-			act.setTargetCreature(originCreature);
-			act.setType(Action.Type.DODGE);
+			act.setTargetCreature(creatures.stream().filter((x) -> {
+				return x.getName().equals("Velthal");
+			}).findAny().get());
+			act.setType(Action.Type.CAST);
+			act.setArgs("Phantasmal Killer");
 		} else if(originCreature.getName().equals("Agatha")) {
 			act.setOriginCreature(originCreature);
 			act.setTargetCreature(creatures.stream().filter((x) -> {

@@ -1,0 +1,321 @@
+% Lexicon 21 Oct 1995
+% Written by Hercules Dalianis
+% Rewritten by Hercules Dalianis Dec 1996
+% Rewritten by Hercules Dalianis April 1997
+
+% for SICStus Prolog
+%:- multifile noun/5, verb/5, adj/4,propernoun/5,conj/3,cue/3.
+
+neg(¬)				--> [not].
+
+clause_conj(and)		--> {clause_comma(yes)}, [','].
+clause_conj(and)		--> {clause_comma(no)},[clause_and].
+conj(and)				--> [and].
+
+conj(or)				--> [or].
+conj(cue(but,_))		--> [but,also].
+
+pronoun(sing,mask,he)	--> [he].
+pronoun(sing,fem,she)	--> [she].
+pronoun(sing,neut,it)	--> [it].
+pronoun(plur,_,they)	--> [they].
+
+pronoun(plur,neut,eq_rel)		--> [each,other].
+
+propernoun(sing,neut,week)	
+					--> [week].
+propernoun(sing,neut,weekday)	
+					--> [weekdays].
+propernoun(sing,neut,monday)	
+					--> [monday].
+propernoun(sing,neut,tuesday)
+					--> [tuesday].
+propernoun(sing,neut,wednesday)
+					-->  [wednesday].
+propernoun(sing,neut,thursday)
+					-->  [thursday].
+propernoun(sing,neut,friday)
+					-->  [friday].
+propernoun(sing,neut,saturday)
+					-->  [saturday].
+propernoun(sing,neut,sunday)
+					-->  [sunday].
+
+propernoun(sing,mask,john)	--> [john].
+propernoun(sing,mask,tom)	--> [tom].	
+propernoun(sing,fem,mary)	--> [mary].	
+propernoun(sing,fem,helen)	--> [helen].	
+
+
+prep(P/_,C/_) 	--> prep(P,C).
+prep(P/_,C) 	--> prep(P,C).
+
+
+prep(_,WEEK)			--> [on],{b_lex_set(W,L),
+						      (member(WEEK,L);
+						       WEEK == weekday)}.
+prep(_,WEEK & REST)	--> [on],{b_lex_set(W,L),
+						      (member(WEEK,L);
+						       WEEK == weekday)}.
+prep(_,week)			--> [all].
+prep(_,week & REST)	--> [all].
+
+prep(talk_action,_) 	
+					--> [to].
+prep(marry_rel,_) 		
+					--> [to].
+prep(different_rel,_) 	
+					--> [from].
+prep(fight_rel,_) 	
+					--> [with].
+prep(discuss_rel,_) 	
+					--> [with].
+
+
+% buy on monday contra sell to Mary					
+prep(buy_action,C) 
+					--> [from],{propernoun(_,_,C,_,_)}.
+prep(sell_action,C) 
+					--> [on],{propernoun(_,neut,C,_,_)}.
+prep(sell_action,C) 
+					--> [to],{propernoun(_,N,C,_,_), not(N==neut)}.
+prep(walk_action,C ) 
+					--> [on],{propernoun(_,neut,C,_,_)}.
+prep(walk_action,C) 
+					--> [to],{noun(_,_,C,_,_)}.
+prep(redirect_action,C) 
+					--> [on],{propernoun(_,neut,C,_,_)}.
+prep(redirect_action,C) 
+					--> [to],{propernoun(_,N,C,_,_), not(N==neut)}.
+prep(A,C & D) 			-->  prep(A,C).
+prep([P],C) 			 --> prep(P,C).  % john walks to a shop and to a store
+prep(_,_) 			 --> [].
+
+
+
+% isa or state
+verb(pres,sing,isa)		--> [is].
+verb(pres,plur,isa)		--> [are].
+
+verb(pres,sing,state)	--> [is].
+verb(pres,plur,state)	--> [are].
+
+verb(pres,sing,attr)	--> [has,attribute].
+verb(pres,plur,attr)	--> [has,attributes].
+
+% isa or state
+verb(pres,sing,isa_state)	--> [is].
+verb(pres,plur,isa_state)	--> [are].
+
+verb(pres,sing,poss)		--> [has].
+verb(pres,plur,poss)		--> [have].
+
+verb(pres,sing,poss_rel)	--> [who,has].
+verb(pres,plur,poss_rel)		--> [who,have].
+
+verb(pres,sing,walk_action)	--> [walks].
+verb(pres,plur,walk_action)	--> [walk].
+
+verb(pres,sing,work_action)	--> [works].
+verb(pres,plur,work_action)	--> [work].
+
+verb(pres,sing,talk_action)	--> [talks].
+verb(pres,plur,talk_action)	--> [talk].
+
+verb(pres,sing,greet_action)	--> [greets].
+verb(pres,plur,greet_action)	--> [greet].
+
+verb(pres,sing,insult_action)	--> [insults].
+verb(pres,plur,insult_action)	--> [insult].
+
+verb(pres,sing,call_action)	--> [calls].
+verb(pres,plur,call_action)	--> [call].
+
+verb(pres,sing,eat_action)	--> [eats].
+verb(pres,plur,eat_action)	--> [eat].
+
+verb(pres,sing,fight_rel)	--> [fights].
+verb(pres,plur,fight_rel)	--> [fight].
+
+verb(past,sing,fight_rel)	--> [fought].
+verb(past,plur,fight_rel)	--> [fought].
+
+verb(pres,sing,hit_action)	--> [hits].
+verb(pres,plur,hit_action)	--> [hit].
+
+verb(past,sing,hit_action)	--> [hit].
+verb(past,plur,hit_action)	--> [hit].
+
+verb(pres,sing,kick_action)	--> [kicks].
+verb(pres,plur,kick_action)	--> [kick].
+
+verb(past,sing,kick_action)	--> [kicked].
+verb(past,plur,kick_action)	--> [kicked].
+
+verb(pres,sing,punch_action)--> [punches].
+verb(pres,plur,punch_action)	--> [punch].
+
+verb(past,sing,punch_action)--> [punched].
+verb(past,plur,punch_action)	--> [punched].
+
+verb(pres,sing,discuss_rel)--> [is,discussing].
+verb(pres,plur,discuss_rel)--> [are,discussing].
+
+verb(pres,sing,different_rel)--> [is,different].
+verb(pres,plur,different_rel)--> [are,different].
+
+verb(pres,sing,marry_rel)--> [is,married].
+verb(pres,plur,marry_rel)--> [are,married].
+
+verb(pres,sing,paint_action)	--> [paints].
+verb(pres,plur,paint_action)	--> [paint].
+
+verb(pres,sing,dial_action)	--> [dials].
+verb(pres,plur,dial_action)	--> [dial].
+
+verb(pres,sing,make_offhook)	--> [lifts,receiver].
+verb(pres,plur,make_offhook)	--> [lift,receiver].
+
+verb(pres,sing,redirect_action)	--> [redirects].
+verb(pres,plur,redirect_action)	--> [redirect].
+
+verb(pres,sing,speech_connection)	--> [has,speechconnection,with].
+verb(pres,plur,speech_connection)	--> [have,speechconnection,with].
+
+
+% ditr
+verb(ditr,pres,sing,give_action)	--> [gives].
+verb(ditr,pres,plur,give_action)	--> [give].
+
+verb(ditr,pres,sing,sell_action)	--> [sells].
+verb(ditr,pres,plur,sell_action)	--> [sell].
+
+verb(ditr,past,sing,sell_action)	--> [sold].
+verb(ditr,past,plur,sell_action)	--> [sold].
+
+verb(ditr,pres,sing,buy_action)	--> [buys].
+verb(ditr,pres,plur,buy_action)	--> [buy].
+
+verb(ditr,past,sing,buy_action)	--> [bought].
+verb(ditr,past,plur,buy_action)	--> [bought].
+
+
+verb(_,_,[_])				--> [].
+
+det(sing,A/dem)			--> [another].
+det(sing,[N,M])			--> [N,or,M]. % cardinality one or more
+det(sing,[_])				--> [].
+det(sing,A)				--> [a], {not(vowel(A))}.
+det(sing,A)				--> [an],{vowel(A)}.
+det(plur,A)				--> [].
+
+
+
+noun(sing,mask,man)		--> [man].
+noun(plur,mask,man)		--> [men].
+
+noun(sing,fem,woman)		--> [woman].
+noun(plur,fem,woman)		--> [women].
+
+
+noun(sing,neut,person)		--> [person].
+noun(plur,neut,person)		--> [persons].
+
+noun(sing,neut,operator)	--> [operator].
+noun(plur,neut,operator)	--> [operators].
+
+noun(sing,neut,telephonecompany)	--> [telephone],[company].
+noun(plur,neut,telephonecompany)	--> [telephone],[companies].
+
+noun(sing,neut,subscriber)	--> [subscriber].
+noun(plur,neut,subscriber)	--> [subscribers].
+
+noun(sing,neut,mobile_subscriber)	
+						--> [mobile,subscriber].
+noun(plur,neut,mobile_subscriber)	
+						--> [mobile,subscribers].
+
+noun(sing,neut,phonenumber) 
+						--> [phonenumber].
+noun(plur,neut,phonenumber)		
+						--> [phonenumbers].
+
+noun(sing,neut,phone_call) 
+						--> [phone,call].
+noun(plur,neut,phone_call)		
+						--> [phone,calls].
+
+noun(sing,neut,dial_tone)	--> [dialtone].
+noun(plur,neut,dial_tone)	--> [dialtones].
+
+noun(sing,neut,ring_tone)	--> [ringtone].
+noun(plur,neut,ring_tone)	--> [ringtones].
+
+noun(sing,neut,ring_signal)	--> [ringsignal].
+noun(plur,neut,ring_signal)	--> [ringsignals].
+												
+noun(sing,neut,book)		--> [book].
+noun(plur,neut,book)		--> [books].
+
+noun(sing,neut,pen)		--> [pen].
+noun(plur,neut,pen)		--> [pens].
+
+noun(sing,neut,car)		--> [car].
+noun(plur,neut,car)			--> [cars].
+
+noun(sing,neut,shop)		--> [shop].
+noun(plur,neut,shop)		--> [shops].
+
+noun(sing,neut,store)		--> [store].
+noun(plur,neut,store)		--> [stores].
+
+noun(sing,neut,wall)		--> [wall].
+noun(plur,neut,wall)		--> [walls].
+
+noun(sing,neut,ice_cream)	--> [ice,cream].
+noun(plur,neut,ice_cream)	--> [ice,creams].
+
+noun(sing,neut,cold)		--> [cold].
+noun(plur,neut,cold)		--> [colds].
+
+noun(_,_,[_])			--> [].
+
+noun(AGR,GEND,P)			--> pronoun(AGR,GEND,P).
+noun(AGR,GEND,agr(P))		--> [].
+
+adj(AGR,tall)			--> [tall].
+adj(AGR,red)			--> [red].
+adj(AGR,yellow)		--> [yellow].
+adj(AGR,blue)			--> [blue].
+adj(AGR,busy)			--> [busy].
+adj(AGR,idle)			--> [idle].
+%adj(AGR,dial_tone)		--> [dialtone].
+%adj(AGR,ring_tone)		--> [ringtone].
+%adj(AGR,ring_signal)	--> [ringsignal].
+adj(AGR,idle)			--> [idle].
+adj(AGR,married)		--> [married].
+
+% filter
+cue(P/A)				--> cue(A).
+
+cue(ass)				--> [respectively].
+cue(joint)			--> [together].
+cue(disj)				--> [each].
+cue(eqv)				--> [equally,well].
+cue(but)				--> [].
+cue(_)				--> [].
+
+vowel(A) :- atom(A), name(A, [T|_]) ,vowel_ascii(T).
+
+
+
+vowel_ascii(97).
+vowel_ascii(101).
+vowel_ascii(105).
+vowel_ascii(111).
+vowel_ascii(117).
+	       
+
+%:- nl,write('Consulting volvolexicon..'),nl.
+%:- consult(volvolexicon).
+%:-  write('Consulted !'),nl.

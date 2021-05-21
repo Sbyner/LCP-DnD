@@ -6,10 +6,10 @@ import org.kie.api.runtime.KieSession;
 
 public class KieSessionFactory {
 	
-	static KieServices ks = KieServices.Factory.get();
-    static KieContainer kContainer = ks.getKieClasspathContainer();
-	
 	public static KieSession getSession(String id) {
-		return kContainer.newKieSession(id);
+
+		KieServices ks = KieServices.Factory.get();
+	    KieContainer kContainer = ks.getKieClasspathContainer();
+	    return kContainer.newKieSession(id);
 	}
 }

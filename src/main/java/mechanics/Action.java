@@ -8,6 +8,15 @@ public class Action {
 	Creature originCreature;
 	Creature targetCreature;
 	Type type;
+	String args;
+	public String getArgs() {
+		return args;
+	}
+
+	public void setArgs(String args) {
+		this.args = args;
+	}
+
 	LinkedList<Event> events = new LinkedList<Event>();
 	
 

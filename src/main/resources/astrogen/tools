@@ -1,0 +1,209 @@
+/* main program loop                                                            */
+/* tools rewritten by Hercules Dalianis in Nov 1994             */
+/* tools rewritten by Hercules Dalianis in Sept 1995            */
+/* tools rewritten by Hercules Dalianis in April 1997           */
+/* tools rewritten by Hercules Dalianis in Sept 1997            */
+/* tools rewritten by Hercules Dalianis in April 1998           */
+/* tools rewritten by Hercules Dalianis in Oct 1998             */
+/* the predicates in this file controls the generation          */
+
+% This is for SICStus Prolog
+:- dynamic subject_pred/1, subject/1, predicate_do/1, predicate/1,
+        sym_rel/1, pronoun/1, bound_lex/1, un_bound_lex/1,
+        clause_comma/1, canned_text/1, canned_example/1,
+        clause_comma/1, sort_conj/3.
+
+user_help :-    write('These are all the switches for aggregation'),nl,
+                write('One can also use set(SWITCH(no)) to remove it'),nl,
+                write(' subject_pred'),nl,
+                write(' predicate_do'),nl,
+                write(' subject'),nl,
+                write(' predicate'),nl,
+                write(' sym_rel'),nl,
+                write(' pronoun'),nl,
+                write(' bound_lex'),nl, 
+                write(' un_bound_lex'),nl,
+                write(' clause_comma'),nl,
+                write(' canned_text'),nl,
+                write(' canned_example'),nl.
+                
+
+
+% these predicates activates subject and predicate, 
+% predicate and direct object grouping
+% finally reset to normal option
+subject_pred            :-      set(subject_pred(yes)),set(pronoun(no)).
+predicate_do            :-      set(predicate_do(yes)). 
+predicate                       :-      set(predicate(yes)). 
+subject                 :-      set(subject(yes)). 
+sym_rel                 :-      set(sym_rel(yes)). 
+pronoun                 :-      set(pronoun(yes)). 
+%natural                        :-      set(natural(yes)).
+bound_lex               :-      set(bound_lex(yes)).
+un_bound_lex            :-      set(un_bound_lex(yes)).
+canned_text             :-      set(canned_text(yes)).
+canned_example  :-      set(canned_example(yes)).
+clause_comma    :-      set(clause_comma(yes)).
+
+sort(K,N,M)             :-      nonvar(K),nonvar(N),nonvar(M),
+                                        set(sort_conj(K,N,M)).
+sort(K,N,M)             :-      sort_conj(K,N,M).                                       
+normal                  :-      set(subject_pred(no)),
+                                        set(predicate_do(no)),
+                                        set(predicate(no)), 
+                                        set(subject(no)), %%
+                                        set(sym_rel(no)),
+                                        set(pronoun(no)),
+                                        set(bound_lex(no)),
+                                        set(un_bound_lex(no)),
+                                        set(sort_conj(n,n,n)),
+                                        set(canned_text(no)),
+                                        set(canned_example(no)),
+                                        set(clause_comma(no)).
+
+                                        
+all_rules                       :-      sort(1,2,3),
+                                        subject_pred,
+                                        predicate_do,
+                                        subject,
+                                        predicate,
+                                        sym_rel,
+                                        bound_lex,
+                                        un_bound_lex,
+                                        canned_text,
+                                        canned_example.
+
+
+/* init */
+rewrite(no).
+subject_pred(no).
+predicate_do(no).
+predicate(no).
+subject(no).
+sym_rel(no).
+pronoun(no).
+bound_lex(no).
+un_bound_lex(no).
+sort_conj(n,n,n).
+canned_text(no).
+canned_example(no).
+clause_comma(no).
+
+/*init          :-                      normal.  */
+
+pos_subject_pred(R,NR)   :-     subject_pred(yes),
+                                                sort_conj(2,1,3,R,SR),
+                                                subject_pred(SR,NR),!.
+pos_subject_pred(R,R).
+
+pos_predicate_do(R,NR)  :-      predicate_do(yes),
+                                                sort_conj(1,3,2,R,SR), % (1,2,3,R,SR),
+                                                predicate_do(SR,NR),!.
+pos_predicate_do(R,R).
+
+pos_predicate(R,NR)     :-      predicate(yes),
+                                                predicate(R,NR),!.
+pos_predicate(R,R).
+
+pos_subject(R,NR)       :-              subject(yes),
+                                                subject(R,NR),!.
+pos_subject(R,R).
+
+pos_sym_rel(R,NR)       :-              sym_rel(yes),
+                                                sym_rel(R,NR),!.
+pos_sym_rel(R,R).
+
+pos_pronoun(R,NR)               :-      pronoun(yes),
+                                                pronoun(R,NR),!.
+pos_pronoun(R,R).
+
+pos_bound_lex(R,NR)     :- 
+                                        bound_lex(yes),
+                                        bound_lex(R,NR),!.
+pos_bound_lex(R,R).
+
+pos_un_bound_lex(R,NR)  :- 
+                                        un_bound_lex(yes),
+                                        un_bound_lex(R,NR).
+pos_un_bound_lex(R,R).
+
+pos_sort_conj(C,SC)     :- 
+                                        sort_conj(K,N,M),
+                                        sort_conj(K,N,M,C,SC),!.
+pos_sort_conj(R,R).
+
+pos_canned_text(A)      :-  canned_text(yes),
+                                             find_canned_text(A),!.
+pos_canned_text(A).     
+
+pos_canned_example(A):-  canned_example(yes),
+                                             find_canned_example(A),!.
+pos_canned_example(A).  
+
+% paraphrase/1 calls paraphrase/2
+paraphrase(R)                   :- paraphrase(R,NL1),!,
+                                            capital_letter(NL1,NL2),
+                                            remove_and(NL2,NL),
+                                            pptnllist(NL).
+% errorhandling                                                                         
+                                
+paraphrase(_)                   :- pptnllist([para_error]),!.
+        
+
+% paraphrase/2
+paraphrase(R,NL)                :- paraphrase1(R,NL).
+
+
+% paraphrase1/2
+% rule                             
+paraphrase1(IN,UT)        :-  deep(IN,DO),
+                                        surface(DO,UT).
+
+% deep/2                        
+deep(IN,UT)             :-      pos_un_bound_lex(IN,UBL),
+                                        pos_predicate_do(UBL,PD), 
+                                        pos_subject_pred(PD,S), 
+                                        pos_predicate(S,D), 
+                                        pos_subject(D,P), 
+                                        pos_sym_rel(P,R),
+                                        pos_bound_lex(R,BL),
+                                        pos_sort_conj(BL,PRON),
+                                        pos_pronoun(PRON,UT).
+                                
+                                        %pos_sort_conj(BL,ST), %vände på ordningen sort och pronoun
+                                        %pos_pronoun(ST,UT).
+                                        
+        
+% ordering+aggregation in one predicate                         
+ord213_subject_pred(IN,OUT)     :-      
+                                        sort_conj213(IN,A),     
+                                        subject_pred(A,OUT).                            
+                
+ord123_predicate_do(IN,OUT)     :-      
+                                        sort_conj123(IN,A),     
+                                        predicate_do(A,OUT).    
+
+ord132_bound_lex(IN,OUT)        :-      
+                                        sort_conj132(IN,A),     
+                                        bound_lex(A,OUT).       
+
+                                     
+
+%find_canned_text: key is entity and find_dictionary retrieves 
+% info about key from dictionary and prints it
+%find_canned_text(A)            :-      dictionary(A,B),write(B),nl.
+find_canned_text(A)             :-      canned_text(A,B),write(B),nl.
+find_canned_text(A)             :-      literal(A).
+find_canned_text(A & B)         :-      find_canned_text(A), 
+                                                        find_canned_text(B).
+
+find_canned_example(A)          :-      canned_example(A,B),write(B),nl.
+find_canned_example(A)          :-      literal(A).
+find_canned_example(A & B)      :-      find_canned_example(A), 
+                                                                find_canned_example(B).
+                                                                
+test :- test(P),write(P),nl,paraphrase(P),nl,fail.
+test.
+
+test1 :- test(P),write(P),nl,paraphrase(P,L),pptnllist(L),fail.
+test1.
