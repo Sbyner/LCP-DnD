@@ -2,6 +2,8 @@ package mechanics;
 
 import java.util.LinkedList;
 
+import org.drools.core.command.runtime.AddEventListenerCommand;
+
 import creatures.Creature;
 
 public class Action {
@@ -48,7 +50,10 @@ public class Action {
 		return targetCreature;
 	}
 
-
+	public void addEvent(Creature initiator, String action, Creature target, String additionalInfo) {
+		events.add(new Event(initiator,action,target,additionalInfo));
+	}
+	
 
 	public enum Type{
 		ATTACK,

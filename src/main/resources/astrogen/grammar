@@ -50,8 +50,8 @@ s(f(T,P,A,B) & F)	-->   np(AGR,A),
 					
 % three value (give) ditransitive verbs or number of
 s(f(T,P,A,B,C))	-->   	s(f(T,P,A,B)),
-					prep(P,C),
-					np(_,C),
+					prep(P,C),%prep(P,C),
+					np(_,C),%prep(_,C),
 					cue(P).
 
 % three value (give) 
@@ -74,7 +74,7 @@ np(_,N/CUE) 		-->  {number(CUE)},np(AGR,N).
 np(_,N/CUE) 		-->  {cue_to_agr(CUE,AGR)},np(AGR,N).
 np(AGR,A/dem) 	--> det(AGR,A/dem),noun(AGR,GEND,A).
 
-np(AGR,¬A) 		--> [not],np(AGR,A).
+np(AGR,Â¬A) 		--> [not],np(AGR,A).
 np(AGR,card(A,L)) 	--> det(AGR,L),noun(plur,GEND,A).
 np(AGR,A) 		--> det(AGR,A),noun(AGR,GEND,A).
 np(AGR,A) 		--> adj(AGR,A).
@@ -99,7 +99,7 @@ vp(T,AGR,P/CUE) 		--> verb(_,T,AGR,P).
 
 % verb phrase
 vp(T,AGR,P)			--> verb(T,AGR,P).
-vp(T,AGR,¬P)			--> verb(T,AGR,P),neg(¬).
+vp(T,AGR,Â¬P)			--> verb(T,AGR,P),neg(Â¬).
 vp(T,AGR,P1&P2) 		--> verb(T,AGR,P1),conj(and),verb(T,AGR,P2).	
 vp(T,AGR,P/CUE) 		--> {number(CUE)},verb(T,AGR,P). %prep(P).
 vp(T,AGR,P/CUE) 		--> verb(T,AGR,P). %prep(P).

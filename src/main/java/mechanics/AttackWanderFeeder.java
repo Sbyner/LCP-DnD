@@ -5,7 +5,7 @@ import java.util.List;
 import creatures.Creature;
 import mechanics.Action.Type;
 
-public class AttackWanderFeeder implements ActionFeeder {
+public class AttackWanderFeeder implements ActionProcessor {
 
 	@Override
 	public Action feed(Creature originCreature, List<Creature> creatures) {
@@ -32,5 +32,13 @@ public class AttackWanderFeeder implements ActionFeeder {
 		}
 		return act;
 	}
+
+	@Override
+	public void processAction(Action action) {
+		System.out.println(action);
+		
+	}
+	
+	
 
 }

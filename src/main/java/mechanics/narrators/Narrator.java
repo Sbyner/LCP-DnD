@@ -5,6 +5,6 @@ import mechanics.Event;
 
 
 
-public interface Narrator extends Function<Event, String>{
+public interface Narrator{
 	
 }

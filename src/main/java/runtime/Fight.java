@@ -8,7 +8,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
 import creatures.Creature;
-import mechanics.ActionFeeder;
+import mechanics.ActionProcessor;
 import mechanics.Turn;
 import mechanics.Turn.State;
 
@@ -45,19 +45,19 @@ public class Fight {
 		this.handles = handles;
 	}
 
-	public ActionFeeder getFeeder() {
-		return feeder;
+	public ActionProcessor getFeeder() {
+		return processor;
 	}
 
-	public void setFeeder(ActionFeeder feeder) {
-		this.feeder = feeder;
+	public void setFeeder(ActionProcessor feeder) {
+		this.processor = feeder;
 	}
 
 	KieSession session;
 	List<Creature> creatures;
 	Turn turn = new Turn();
 	HashMap<Creature, FactHandle> handles = new HashMap<Creature, FactHandle>();
-	ActionFeeder feeder;
+	ActionProcessor processor;
 	FactHandle turnHandle;
 	
 	public void setup() {
@@ -77,19 +77,19 @@ public class Fight {
 	}
 	
 	public void run() {
-		boolean running = true;
-		while(running) {
+		while(creatures.stream().filter((x)->!x.isDead()).count()>1) {
 			for(var creature: creatures) {
-				System.out.println(creature.getName()+" PORCODDIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+				if(!creature.isDead()) {
 				creature.setFought(false);
 				turn.setStatus(State.TURNSTART);
 				session.update(turnHandle, turn);
 				session.update(handles.get(creature), creature);
-				var act = feeder.feed(creature, creatures);
+				var act = processor.feed(creature, creatures);
+				processor.processAction(act);
 				var actHandle = session.insert(act);
 				session.fireAllRules();
 				session.delete(actHandle);
-				
+				}
 			}
 		}
 	}

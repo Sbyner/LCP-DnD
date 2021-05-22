@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Streams;
 
+import creatures.Creature;
+
 public abstract class Utils {
 	public enum Advantage{
 		ADVANTAGE,
@@ -73,5 +75,14 @@ public abstract class Utils {
 		list.add(9, 0);
 		return list;
 
+	}
+	
+	public static String hurtStatus(Creature creature) {
+		double ratio = creature.getHp()/creature.getMaxHp();
+		if(ratio>0.9)return "healthy"; //"healthy"
+		if(ratio>0.6)return "slightlyhurt";
+		if(ratio>0.2)return "hurt";
+		return "injured";
+		
 	}
 }

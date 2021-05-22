@@ -31,7 +31,7 @@
 :- reconsult(permut).
 
 
-%:- reconsult(domain).
+:- consult(domain).
 
 
 :- nl,write('ASTROGEN loaded!'),nl.

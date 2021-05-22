@@ -4,7 +4,9 @@
 % Rewritten by Hercules Dalianis April 1997
 
 % for SICStus Prolog
-%:- multifile noun/5, verb/5, adj/4,propernoun/5,conj/3,cue/3.
+:- multifile noun/5, prep/4, verb/5, verb/6, adj/4,propernoun/5,conj/3,cue/3.
+
+:- dynamic propernoun/5.
 
 neg(¬)				--> [not].
 
@@ -46,7 +48,6 @@ propernoun(sing,mask,tom)	--> [tom].
 propernoun(sing,fem,mary)	--> [mary].	
 propernoun(sing,fem,helen)	--> [helen].	
 
-
 prep(P/_,C/_) 	--> prep(P,C).
 prep(P/_,C) 	--> prep(P,C).
 
@@ -79,6 +80,7 @@ prep(sell_action,C)
 					--> [on],{propernoun(_,neut,C,_,_)}.
 prep(sell_action,C) 
 					--> [to],{propernoun(_,N,C,_,_), not(N==neut)}.
+prep(cast_action,C)--> [on],{propernoun(_,_,C,_,_)}.
 prep(walk_action,C ) 
 					--> [on],{propernoun(_,neut,C,_,_)}.
 prep(walk_action,C) 

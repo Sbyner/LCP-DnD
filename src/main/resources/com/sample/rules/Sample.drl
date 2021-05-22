@@ -42,11 +42,31 @@ rule "RETRACT EFFECTS"
 	retract(eff);
 end
 
+rule "AM DED"
+salience 8950
+	when 
+		c: Creature( hp <= 0 )
+		act : Action( originCreature.name == c.name)
+	then
+		System.out.println("I, "+c.getName()+", AM DED");
+		c.setDead(true);
+		update(c);
+end
+
+rule "U DED"
+salience 8950
+	when
+		act: Action( targetCreature.hp <= 0 )
+	then
+		System.out.println(act.getTargetCreature().getName()+" IS DED");
+		act.getTargetCreature().setDead(true);
+end
+
 rule "FIGHT STAGE"
 	salience 8900
 	when
 		turn : Turn(status == Turn.State.TURNSTART)
-		c : Creature(!fought)
+		c : Creature(!fought && !dead)
 		act : Action(originCreature.name == c.name)
 		not Effect(creature.name == c.name)
 	then
@@ -63,7 +83,7 @@ no-loop
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name && !fought && !dead)
 	then
 	//modify(turn){setStatus(State.FIGHT)};
 	//working? switch to purely rule-based approach
@@ -89,7 +109,7 @@ rule "APPLY DODGE"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name && !dead)
 		dodge : Dodge(creature.name == act.targetCreature.name)
 	then
 	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.decreaseAdvantage(x));
@@ -101,7 +121,7 @@ rule "APPLY HELP"
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name && !dead)
 		help : Helped(creature.name == c.name)
 	then
 	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.increaseAdvantage(x));
@@ -115,19 +135,25 @@ no-loop
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action()
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name  && !dead)
 		pk : PhantasmalKillerEffect(creature.name == c.name)
 	then
+	
 	int saveThrow = Utils.roll("1d20",c.getAdvantage("wisdom").getValue())+c.getBonus("wisdom");
 	if(saveThrow >= pk.getDc()){
+		act.addEvent(c,"resist_success",c,"Phantasmal Killer");
+		act.addEvent(c,"recover_from",c,"Phantasmal Killer");
 		pk.setOver();
 		retract(pk);
 		System.out.println(c.getName()+" PASSED PK SAVING THROW");
 	}
 	else{
+		act.addEvent(c,"resist_failed",c,"Phantasmal Killer");
+		act.addEvent(c,"is_hurt",c,null);
 		int damage = Utils.roll("4d10",Utils.Advantage.NO);
 		System.out.println(c.getName()+" DIDN'T PASS PK SAVING THROW: HIT FOR "+damage+" HP");
 		c.modifyHp(-damage);
+		update(c);
 		retract(act);
 	}
 	
@@ -139,16 +165,21 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.ATTACK)
-		c : Creature(name == act.originCreature.name, fought == false)
+		c : Creature(name == act.originCreature.name && fought == false && !dead)
 		
 	then
+		act.addEvent(c,"attack",act.getTargetCreature(),null);
 		//c.getEffects().stream().forEach((x)->x.onAttack(c,act));
 		//act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(act.getTargetCreature(),act));
 		if(Utils.roll("1d20",c.getAdvantage("hit").getValue())>=act.getTargetCreature().getStat("ca").getValue()){
 			System.out.println(c.getName()+" hit "+act.getTargetCreature().getName());
 			act.getTargetCreature().modifyHp(-Utils.roll(c.getDamage(), Utils.Advantage.NO));
-		} else System.out.println(c.getName()+" didn't hit "+act.getTargetCreature().getName());
-		
+			act.addEvent(c,"hurt_action",act.getTargetCreature(),null);
+			update(act);
+		} else {
+			System.out.println(c.getName()+" didn't hit "+act.getTargetCreature().getName());
+			act.addEvent(c, "miss_action",act.getTargetCreature(),null);
+		}
 		System.out.println(c.getName()+": Attack");
 		c.setFought(true);
 		update(c);
@@ -160,7 +191,7 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
-		c : Creature(name == act.originCreature.name, fought == false)
+		c : Creature(name == act.originCreature.name && fought == false && !dead)
 	then
 		Spell spell = SpellFactory.getSpell(act.getArgs());
 		if(c.slotsAvailable(spell)){
@@ -182,7 +213,7 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.DODGE)
-		c : Creature(name == act.originCreature.name, fought == false)
+		c : Creature(name == act.originCreature.name && fought == false && !dead)
 	then
 		Dodge dodge = new Dodge(c);
 		c.getEffects().add(dodge);
@@ -201,7 +232,7 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.HELP)
-		c : Creature(name == act.originCreature.name, fought == false)
+		c : Creature(name == act.originCreature.name && fought == false && !dead)
 		
 	then
 		Helped help = new Helped(act.getTargetCreature());
@@ -217,7 +248,7 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name && !dead)
 		mm : MagicMissile()
 	then
 		int damage = Utils.roll("3d4", Utils.Advantage.NO)+3;
@@ -231,7 +262,7 @@ salience 8700
 	when
 		turn : Turn(status == Turn.State.FIGHT)
 		act : Action(type == Action.Type.CAST)
-		c : Creature(name == act.originCreature.name)
+		c : Creature(name == act.originCreature.name && !dead)
 		pk : PhantasmalKiller(  )
 	then
 		System.out.println("APPLYING PHANTASMAL KILLER");
@@ -250,6 +281,8 @@ salience 8700
 		}
 		retract(pk);
 end
+
+
 
 
 query "getCreatures"

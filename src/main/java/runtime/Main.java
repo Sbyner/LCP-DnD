@@ -2,6 +2,10 @@ package runtime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.lang.Integer;
 
 import org.jpl7.*;
 import org.kie.api.event.rule.ObjectDeletedEvent;
@@ -10,10 +14,15 @@ import org.kie.api.event.rule.ObjectUpdatedEvent;
 import org.kie.api.event.rule.RuleRuntimeEventListener;
 import org.kie.api.runtime.KieSession;
 
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.Update;
+
 import creatures.Creature;
 import mechanics.AttackWanderFeeder;
 import mechanics.kie.KieSessionFactory;
 import mechanics.narrators.ASTROGENNarrator;
+import mechanics.telegram.Bot;
 
 /**
  * This is a sample class to launch a rule.
@@ -22,7 +31,40 @@ public class Main {
 
 	public static final void main(String[] args) {
         try {
-            // load up the knowledge base
+            var tbot = new TelegramBot("1866795805:AAGQbwppQDp00FAj28YECtwzmen0gr1ZSrk");
+        	
+            Bot bot = new Bot(tbot);
+            
+        	tbot.setUpdatesListener(updates -> {
+        		
+        		var id = updates.stream().map((update)->{
+        			Consumer<Update> consoom = bot.getUpdateHandler();
+        			consoom.accept(update);
+        			return update.updateId();
+        		}).reduce(-1, (x,y)->y);
+        	    // ... process updates
+        	    // return id of last processed update or confirm them all
+        	    return id;
+        	});
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	
+        	// load up the knowledge base
 	        
         	KieSession kSession = KieSessionFactory.getSession("ksession-rules");
 
@@ -52,12 +94,20 @@ public class Main {
         	
         	var wander = new Creature();
             wander.setName("Wander Hawke");
+            wander.setGender("mask");
             var velthal = new Creature();
             velthal.setName("Velthal");
+            velthal.setGender("mask");
+            var elsa = new Creature();
+            elsa.setName("Elsa");
+            elsa.setGender("fem");
+            elsa.setHp(35);
+
 
             List<Creature> creatures = new ArrayList<Creature>();
             creatures.add(wander);
             creatures.add(velthal);
+            //creatures.add(elsa);
 
             fight.setCreatures(creatures);
         	
@@ -65,53 +115,14 @@ public class Main {
         	
         	fight.setSession(kSession);
         	
-        	fight.setup();
-        	//fight.run();
+        	var narrator = new ASTROGENNarrator(creatures);
         	
-        	var narrator = new ASTROGENNarrator();
+        	fight.setup();
+        	fight.run();
+        	
             
             // paraphrase(f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle)).
-            var q2 = 
-            	    new Compound( 
-            		"paraphrase", 
-            		new Term[] {
-            				new Compound("&" , new Term[] {
-	            				new Compound("f", new Term[] {
-	            					new Atom("pres"),
-	            					new Atom("isa"),
-	            					new Atom("john"),
-	            					new Atom("subscriber"),
-	            				}),
-	            				new Compound("&" , new Term[] {
-	    	            				new Compound("f", new Term[] {
-	    	            					new Atom("pres"),
-	    	            					new Atom("isa"),
-	    	            					new Atom("mary"),
-	    	            					new Atom("subscriber"),
-	    	            				}),
-	    	            				new Compound("&" , new Term[] {
-	    	    	            				new Compound("f", new Term[] {
-	    	    	            					new Atom("pres"),
-	    	    	            					new Atom("state"),
-	    	    	            					new Atom("john"),
-	    	    	            					new Atom("busy"),
-	    	    	            				}),
-	    	    	            				new Compound("f", new Term[] {
-		    	    	            					new Atom("pres"),
-		    	    	            					new Atom("state"),
-		    	    	            					new Atom("mary"),
-		    	    	            					new Atom("busy"),
-		    	    	            				}),
-	    	            				}),
-	            				}),
-            				}),
-            			});
-            				
-            		//new Compound("f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle), X"),
-            		
-            	
-            System.out.println(narrator.query(q2));
-            
+            System.out.println(narrator.getCharacterStatus(creatures));        
             
             //Query q2 = new Query("deep(f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle), X).");
             

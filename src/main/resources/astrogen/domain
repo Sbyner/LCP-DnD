@@ -1,0 +1,32 @@
+:- nl,write('Loading domain... ').
+
+adj(AGR,healthy)			--> [healthy].
+adj(AGR,slightlyhurt)			--> [slightly,hurt].
+adj(AGR,hurt)			--> [hurt].
+adj(AGR,injured)			--> [injured].
+%adj(AGR,healthy)			--> [healthy].
+
+%prep(cast_action,C)	--> [on],{noun(_,_,C,_,_)}.
+
+verb(pres,sing,hurt_action)	--> [hurts].
+verb(pres,plur,hurt_action)	--> [hurt].
+verb(past,_,hurt_action)	--> [hurt].
+
+verb(ditr,pres,sing,cast_action)	--> [casts].
+verb(ditr,pres,plur,cast_action)	--> [cast].
+verb(ditr,past,_,cast_action)		--> [cast].
+
+verb(pres,sing,miss_action)		--> [misses].
+verb(pres,plur,miss_action)		--> [miss].
+verb(past,_,miss_action)		--> [missed].
+
+verb(pres,sing,attack_action)	--> [attacks].
+verb(pres,plur,attack_action)	--> [attack].
+verb(past,_,attack_action)	--> [attacked].
+
+noun(plur,neut,magic_missile) 		--> [magic],[missile].
+
+propernoun(sing,mask,wander)      	--> [wander,hawke].
+propernoun(sing,mask,velthal)      	--> [velthal].
+propernoun(sing,fem,elsa)      		--> [elsa].
+

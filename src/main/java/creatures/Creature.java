@@ -29,7 +29,7 @@ public class Creature {
 	}
 
 	public Creature() {
-
+		
 		level = 10;
 		spellSlots = Utils.getSlots(level);
 
@@ -61,6 +61,34 @@ public class Creature {
 
 	public void updateEffects(Set<Effect> newEffects) {
 		effects = new HashSet<Effect>(newEffects);
+	}
+	
+	boolean dead = false;
+	
+	public boolean isDead() {
+		return dead;
+	}
+
+	public void setDead(boolean dead) {
+		this.dead = dead;
+	}
+
+	String namecode;
+	String gender;
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String getNamecode() {
+		return getName().split(" ")[0].trim().toLowerCase();
+	}
+
+	public int getMaxHp() {
+		return maxHp;
 	}
 
 	int hp;
