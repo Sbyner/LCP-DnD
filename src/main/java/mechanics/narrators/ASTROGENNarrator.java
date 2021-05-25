@@ -203,12 +203,15 @@ public class ASTROGENNarrator implements Narrator {
 					event.getTarget().getNamecode());
 		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getTarget().getNamecode());
-		} else {
-			System.out.println("in else clause");
+		} else if(event.getAdditionalInfo()!=null){
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo());
+		} else{
+			return fify("past",event.getAction(),event.getInitiator().getNamecode());
 		}
 	}
 	
+
+
 	private String encodeLoneEventHideObject(Event event) {
 		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(),

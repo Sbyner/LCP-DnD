@@ -2,8 +2,9 @@
 
 adj(AGR,healthy)			--> [healthy].
 adj(AGR,slightlyhurt)			--> [slightly,hurt].
-adj(AGR,hurt)			--> [hurt].
+adj(AGR,hurt)				--> [hurt].
 adj(AGR,injured)			--> [injured].
+adj(AGR,dead)				--> [dead].
 %adj(AGR,healthy)			--> [healthy].
 
 
