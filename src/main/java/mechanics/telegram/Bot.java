@@ -14,7 +14,6 @@ import creatures.Creature;
 import mechanics.Action;
 import mechanics.Action.Type;
 import mechanics.ActionProcessor;
-import mechanics.AttackWanderFeeder;
 import mechanics.narrators.Narrator;
 import runtime.Fight;
 
@@ -88,9 +87,7 @@ public class Bot {
 	}
 
 	private Action generateAction(Update update) {
-		// return new AttackWanderFeeder().feed(current, fight.getCreatures());
 		var fields = parseCommand(update.message());
-		// System.out.println(fields[0]+ "===" + fields[1]);
 		switch (fields[0]) {
 		case "cast": {
 			var act = new Action();
@@ -126,7 +123,6 @@ public class Bot {
 			return act;
 		}
 		case "dodge": {
-			System.out.println("IN DODGE BLOCK");
 			var act = new Action();
 			act.setType(Type.DODGE);
 			act.setOriginCreature(current);
@@ -140,17 +136,12 @@ public class Bot {
 	private boolean validateAction(Action act) {
 		if (act == null)
 			return false;
-		System.out.println("not null");
 		if (act.getOriginCreature() == null)
 			return false;
-		System.out.println("origin not null");
 		if (act.getOriginCreature().equals(act.getTargetCreature()))
 			return false;
-		System.out.println("origin!=target");
 		if (act.getType() == null)
 			return false;
-		System.out.println("type not null");
-
 		return true;
 	}
 }

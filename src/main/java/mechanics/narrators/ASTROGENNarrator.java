@@ -65,11 +65,7 @@ public class ASTROGENNarrator implements Narrator {
 		System.out.println("pronoun " + (pronouns.hasSolution() ? "succeeded" : "failed"));
 		pronouns.close();
 
-		// Query reconsult = new Query("reconsult", new
-		// Atom("src/resources/astrogen/lexicon"));
-		// System.out.println("reconsult " + (reconsult.hasSolution() ? "succeeded" :
-		// "failed"));
-		// reconsult.close();
+
 	}
 
 	private String fify(String tense, String rel, String subject, String object) {
@@ -88,7 +84,6 @@ public class ASTROGENNarrator implements Narrator {
 		var comp = new Compound("paraphrase", new Term[] { Term.textToTerm(creatures.stream().map((creature) -> {
 			return fify("pres", "state", creature.getNamecode(), Utils.hurtStatus(creature));
 		}).collect(Collectors.joining(" & "))) });
-		System.out.println(comp);
 		return query(comp);
 	}
 
@@ -181,7 +176,6 @@ public class ASTROGENNarrator implements Narrator {
 //			else if(!event.getInitiator().equals(event.getTarget())){
 //				fSTructs.add(fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getTarget().getNamecode()));
 //			} else {
-//				System.out.println("in else loop");
 //				fify("past",event.getAction(),event.getInitiator().getNamecode(),event.getAdditionalInfo());
 //			}
 //			

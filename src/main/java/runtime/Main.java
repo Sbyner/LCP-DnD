@@ -19,7 +19,6 @@ import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 
 import creatures.Creature;
-import mechanics.AttackWanderFeeder;
 import mechanics.kie.KieSessionFactory;
 import mechanics.narrators.ASTROGENNarrator;
 import mechanics.telegram.Bot;
@@ -129,7 +128,6 @@ public class Main {
         	
             
             // paraphrase(f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle)).
-            System.out.println(narrator.getCharacterStatus(creatures));        
             
             //Query q2 = new Query("deep(f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle), X).");
             

@@ -79,7 +79,6 @@ public abstract class Utils {
 	
 	public static String hurtStatus(Creature creature) {
 		double ratio = (double)creature.getHp()/(double)creature.getMaxHp();
-		System.out.println(ratio);
 		if(ratio>0.9)return "healthy"; //"healthy"
 		if(ratio>0.6)return "slightlyhurt";
 		if(ratio>0.2)return "hurt";

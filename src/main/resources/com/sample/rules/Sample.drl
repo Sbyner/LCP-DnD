@@ -15,9 +15,6 @@ rule "Roll for initiative"
         c : Creature()
     then
     	c.setStatPerm("initiative",Utils.roll("1d20", c.getAdvantage("initiative").getValue())+c.getBonus("initiative"));
-        System.out.println( "Initiative: " + c.getName() );
-        
-        
 end
 
 rule "FIGHT START"
@@ -25,7 +22,6 @@ salience 9000
 	when
 		turn : Turn(status == Turn.State.INIT)
 	then
-		System.out.println("Gabibbo");
 		turn.setStatus(Turn.State.TURNSTART);
 		update(turn);
 end
@@ -38,7 +34,6 @@ rule "RETRACT EFFECTS"
 		act : Action(originCreature.name == c.name)
 		eff : Effect(creature.name == c.name)
 	then
-	System.out.println(eff.getCreature().getName()+": retracting "+eff.toString());
 	retract(eff);
 end
 
@@ -49,7 +44,6 @@ salience 8950
 		act: Action( originCreature.name == c.name )
 	then
 		act.addEvent(c,"death_action",null,null);
-		System.out.println("I, "+c.getName()+", AM DED");
 		c.setDead(true);
 		update(c);
 end
@@ -60,7 +54,6 @@ salience 8950
 		act: Action(targetCreature != null && targetCreature.hp <= 0 )
 	then
 		act.addEvent(act.getTargetCreature(),"death_action",null,null);
-		System.out.println(act.getTargetCreature().getName()+" IS DED");
 		act.getTargetCreature().setDead(true);
 end
 
@@ -72,11 +65,8 @@ rule "FIGHT STAGE"
 		act : Action(originCreature.name == c.name && !over)
 		not Effect(creature.name == c.name)
 	then
-	System.out.println("TURNSTART => FIGHT");
 	turn.setStatus(State.FIGHT);
 	update(turn);
-	//update(act);
-	//update(c);
 end
 
 rule "START OF TURN"
@@ -87,23 +77,14 @@ no-loop
 		act : Action(!over)
 		c : Creature(name == act.originCreature.name && !fought && !dead)
 	then
-	//modify(turn){setStatus(State.FIGHT)};
-	//working? switch to purely rule-based approach
-	System.out.println(c.getName()+": Start of turn");
 	c.getEffects().stream().forEach((x)->x.tick());
     c.updateEffects(c.getEffects().stream().filter((x)->!x.isOver()).collect(Collectors.toSet()));
-    
-    //c.getEffects().stream().forEach((x)->System.out.println(x));
     
     c.getStats().stream().forEach((x)->x.restoreValue());
     c.getAdvantages().stream().forEach((x)->x.restoreValue());
 	for(Effect eff: c.getEffects()){
 		insertLogical( eff );
 	};
-	//update(turn);
-	//update(act);
-	//update(c);
-	System.out.println(c.getName()+": ============================ of turn");
 end
 
 rule "APPLY DODGE"
@@ -115,7 +96,6 @@ rule "APPLY DODGE"
 		dodge : Dodge(creature.name == act.targetCreature.name)
 	then
 	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.decreaseAdvantage(x));
-	System.out.println(act.getTargetCreature().getName()+": This is a dodge: dodging "+c.getName());
 end
 
 rule "APPLY HELP"
@@ -128,7 +108,6 @@ rule "APPLY HELP"
 	then
 	act.getOriginCreature().getAdvantage("hit").modify((x)->Utils.increaseAdvantage(x));
 	help.setOver();
-	System.out.println(act.getOriginCreature().getName()+": This is help: helping against "+act.getTargetCreature().getName());
 end
 
 rule "APPLY PHANTASMAL KILLER"
@@ -140,7 +119,6 @@ no-loop
 		c : Creature(name == act.originCreature.name  && !dead)
 		pk : PhantasmalKillerEffect(creature.name == c.name)
 	then
-	
 	int saveThrow = Utils.roll("1d20",c.getAdvantage("wisdom").getValue())+c.getBonus("wisdom");
 	if(saveThrow >= pk.getDc()){
 		Event parentE = act.addEvent(c,"resist_success",null,"phantasmal_killer");
@@ -148,14 +126,12 @@ no-loop
 		childE.setPreviousRelatedEvent(parentE);
 		pk.setOver();
 		retract(pk);
-		System.out.println(c.getName()+" PASSED PK SAVING THROW");
 	}
 	else{
 		Event parentE =act.addEvent(c,"resist_failure",null,"phantasmal_killer");
 		Event childE =act.addEvent(c,"get_damaged_action",null,null);
 		childE.setPreviousRelatedEvent(parentE);
 		int damage = Utils.roll("4d10",Utils.Advantage.NO);
-		System.out.println(c.getName()+" DIDN'T PASS PK SAVING THROW: HIT FOR "+damage+" HP");
 		c.modifyHp(-damage);
 		update(c);
 		act.setOver(true);
@@ -174,20 +150,15 @@ salience 8700
 		
 	then
 		Event parentE=act.addEvent(c,"attack_action",act.getTargetCreature(),null);
-		//c.getEffects().stream().forEach((x)->x.onAttack(c,act));
-		//act.getTargetCreature().getEffects().stream().forEach((x)->x.onAttack(act.getTargetCreature(),act));
 		if(Utils.roll("1d20",c.getAdvantage("hit").getValue())>=act.getTargetCreature().getStat("ca").getValue()){
-			System.out.println(c.getName()+" hit "+act.getTargetCreature().getName());
 			act.getTargetCreature().modifyHp(-Utils.roll(c.getDamage(), Utils.Advantage.NO));
 			Event childE = act.addEvent(c,"hurt_action",act.getTargetCreature(),null);
 			childE.setPreviousRelatedEvent(parentE);
 			update(act);
 		} else {
-			System.out.println(c.getName()+" didn't hit "+act.getTargetCreature().getName());
 			Event childE = act.addEvent(c, "miss_action",act.getTargetCreature(),null);
 			childE.setPreviousRelatedEvent(parentE);
 		}
-		System.out.println(c.getName()+": Attack");
 		c.setFought(true);
 		update(c);
 end
@@ -200,18 +171,13 @@ salience 8700
 		act : Action(type == Action.Type.CAST && !over)
 		c : Creature(name == act.originCreature.name && fought == false && !dead)
 	then
-		
 		Spell spell = SpellFactory.getSpell(act.getArgs());
 		if(c.slotsAvailable(spell)){
 		insert(spell);
 		c.castSpell(spell);
-		
 		}else{
 		insert(new Fumble());
-		
 		}
-		
-		System.out.println(c.getName()+": Cast");
 		c.setFought(true);
 		update(c);
 end
@@ -228,7 +194,6 @@ salience 8700
 		c.getEffects().add(dodge);
 		insert(dodge);
 		act.addEvent(c,"dodge_ready",null,null);
-		System.out.println(c.getName()+": Dodge");
 		c.setFought(true);
 		update(c);
 		
@@ -247,7 +212,6 @@ salience 8700
 		Helped help = new Helped(act.getTargetCreature());
 		act.getTargetCreature().getEffects().add(help);
 		insertLogical(help);
-		System.out.println(c.getName()+": Help");
 		c.setFought(true);
 		update(c);
 end
@@ -265,7 +229,6 @@ salience 8700
 		childE.setPreviousRelatedEvent(parentE);
 		int damage = Utils.roll("3d4", Utils.Advantage.NO)+3;
 		act.getTargetCreature().modifyHp(-damage);
-		System.out.println(c.getName()+": Magic Missile for "+damage+" HP on "+act.getTargetCreature().getName());
 		retract(mm);
 end
 
@@ -277,20 +240,17 @@ salience 8700
 		c : Creature(name == act.originCreature.name && !dead)
 		pk : PhantasmalKiller(  )
 	then
-		System.out.println("APPLYING PHANTASMAL KILLER");
 		Creature target = act.getTargetCreature();
 		Event parentE = act.addEvent(c,"cast_action",act.getTargetCreature(),"phantasmal_killer");
 		int saveThrow = Utils.roll("1d20",target.getAdvantage("wisdom").getValue())+target.getBonus("wisdom");
 		int dc = 8 + c.getBonus("wisdom");
 		if(saveThrow < dc){
-		System.out.println(c.getName()+": PK on "+act.getTargetCreature().getName());
 		PhantasmalKillerEffect pkEff = new PhantasmalKillerEffect(act.getTargetCreature());
 		pkEff.setDc(dc);
 		act.getTargetCreature().getEffects().add(pkEff);
 		Event childE = act.addEvent(act.getTargetCreature(),"get_affected_action",null,null);
 		//childE.setPreviousRelatedEvent(parentE);
 		}else{
-		System.out.println(c.getName()+": PK didn't land on "+act.getTargetCreature().getName());
 		Event childE = act.addEvent(act.getTargetCreature(),"resist_success",act.getTargetCreature(),"phantasmal_killer");
 		//childE.setPreviousRelatedEvent(parentE);
 		}
@@ -310,7 +270,6 @@ salience 8700
 		childEvent.setPreviousRelatedEvent(parentEvent);
 		int damage = Utils.roll("3d4", Utils.Advantage.NO)+3;
 		c.modifyHp(-damage);
-		System.out.println(c.getName()+": Fumbled spell for "+damage+" HP");
 		update(c);
 		retract(fmb);
 end
