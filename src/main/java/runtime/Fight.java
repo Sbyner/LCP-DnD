@@ -1,10 +1,12 @@
 package runtime;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
@@ -71,6 +73,10 @@ public class Fight {
 		return turn;
 	}
 
+	public Stream<Creature> getAliveCreatures() {
+		return creatures.stream().filter((x)->!x.isDead());
+	}
+	
 	public boolean isOver() {
 		return !(creatures.stream().filter((x) -> !x.isDead()).count() > 1);
 	}
@@ -104,6 +110,8 @@ public class Fight {
 	public void setSession(KieSession session) {
 		this.session = session;
 	}
+	
+	public List<String> turnLog = new ArrayList<String>();
 
 	public void setTurn(Turn turn) {
 		this.turn = turn;

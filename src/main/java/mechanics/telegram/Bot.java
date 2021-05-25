@@ -1,8 +1,8 @@
 package mechanics.telegram;
 
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Message;
@@ -35,6 +35,7 @@ public class Bot {
 	public Consumer<Update> getUpdateHandler() {
 		return (update) -> {
 			long chatId = update.message().chat().id();
+			if(!fight.isOver()) {
 			if (update.message().text().equalsIgnoreCase("/status")) {
 				var status = narrator.getCharacterStatus(fight.getCreatures());
 				SendResponse response = bot.execute(new SendMessage(chatId, current.getName() + "'s turn.\n"+status));
@@ -44,10 +45,28 @@ public class Bot {
 			if (validateAction(act)) {
 				var narration = narrator.narrate(fight.step(current, act));
 				current = fight.next();
+				fight.turnLog.add(narration);
 				SendResponse response = bot.execute(new SendMessage(chatId, narration));
+				if(fight.isOver()) {
+					var winnersCount = fight.getAliveCreatures().count();
+					var winMessage = " won!";
+					if(winnersCount>0) winMessage=fight.getAliveCreatures().map(Creature::getName).collect(Collectors.joining(", "))+winMessage;
+					else winMessage = "Nobody" + winMessage + " You lose! Good day sir!"; 
+					bot.execute(new SendMessage(chatId, winMessage));
+				}
+				
 			} else {
 				SendResponse response = bot.execute(new SendMessage(chatId, "Invalid input"));
 			}
+		} else {
+			if (update.message().text().equalsIgnoreCase("/log")) {
+				SendResponse response = bot.execute(new SendMessage(chatId, "Winners: "+fight.getAliveCreatures().map(Creature::getName).collect(Collectors.joining(", "))+"\n"+fight.turnLog.stream().collect(Collectors.joining("\n"))));
+				return;
+			}
+			else {
+				bot.execute(new SendMessage(chatId, "The fight is over, type /log to see an overview"));
+			}
+		}
 		};
 
 	}
@@ -55,14 +74,14 @@ public class Bot {
 	private String[] parseCommand(Message message) {
 		var pattern = Pattern.compile("^/(\\S+)\\s(.*)$");
 		var matcher = pattern.matcher(message.text());
-		
+
 		if (matcher.lookingAt()) {
 			return new String[] { matcher.group(1), matcher.group(2) };
 		} else {
 			var secPatt = Pattern.compile("^/(\\S+)$");
 			var secMtc = secPatt.matcher(message.text());
-			if(secMtc.lookingAt()) {
-				return new String[] {secMtc.group(1)};
+			if (secMtc.lookingAt()) {
+				return new String[] { secMtc.group(1) };
 			}
 		}
 		return new String[] { "", "" };
@@ -71,7 +90,7 @@ public class Bot {
 	private Action generateAction(Update update) {
 		// return new AttackWanderFeeder().feed(current, fight.getCreatures());
 		var fields = parseCommand(update.message());
-		//System.out.println(fields[0]+ "===" + fields[1]);
+		// System.out.println(fields[0]+ "===" + fields[1]);
 		switch (fields[0]) {
 		case "cast": {
 			var act = new Action();

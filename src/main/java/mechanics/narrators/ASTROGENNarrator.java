@@ -130,8 +130,10 @@ public class ASTROGENNarrator implements Narrator {
 		// creature.getName()+":"+creature.getNamecode() + " " + (query.hasSolution() ?
 		// "succeeded" : "failed"));
 	}
-
+	
 	public String query(Term term) {
+		System.out.println("===========================================\nQUERY IS: " + term.toString()
+				+ "\n===========================================");
 		Query q2 = new Query("with_output_to",
 				new Term[] { new Compound("string", new Term[] { new Variable("X") }), term });
 		var res = q2.oneSolution().get("X").toString();
@@ -153,16 +155,21 @@ public class ASTROGENNarrator implements Narrator {
 				fStructs.addFirst(encodeLoneEvent(event));
 			} else {
 				skipNext = true;
-				if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget())) {// ditransitive
-					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
-							event.getAdditionalInfo(), event.getTarget().getNamecode())));
-				} else if (!event.getInitiator().equals(event.getTarget())) {
-					fStructs.addFirst(bindFStructures(encodeLoneEventHideObject(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
-							event.getTarget().getNamecode())));
+				if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget() != null) {// ditransitive
+					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),
+							fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+									event.getAdditionalInfo(), event.getTarget().getNamecode())));
+				} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget() != null) {
+					fStructs.addFirst(bindFStructures(encodeLoneEventHideObject(event.getPreviousRelatedEvent()),
+							fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+									event.getTarget().getNamecode())));
+				} else if (event.getAdditionalInfo() != null) {
+					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),
+							fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+									event.getAdditionalInfo())));
 				} else {
-					System.out.println("in else clause");
-					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
-							event.getAdditionalInfo())));
+					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),
+							fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]")));
 
 				}
 			}
@@ -179,8 +186,8 @@ public class ASTROGENNarrator implements Narrator {
 //			}
 //			
 //		}
-		return fStructs.stream().map((fstr)->{
-			return query(new Compound("paraphrase",new Term[] { Term.textToTerm(fstr)}));
+		return fStructs.stream().map((fstr) -> {
+			return query(new Compound("paraphrase", new Term[] { Term.textToTerm(fstr) }));
 		}).collect(Collectors.joining("\n"));
 //		return query(new Compound("paraphrase",
 //				new Term[] { Term.textToTerm(fStructs.stream().collect(Collectors.joining(" & "))) }));
@@ -198,29 +205,31 @@ public class ASTROGENNarrator implements Narrator {
 	}
 
 	private String encodeLoneEvent(Event event) {
-		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget())
+				&& event.getTarget() != null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(),
 					event.getTarget().getNamecode());
-		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget() != null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getTarget().getNamecode());
-		} else if(event.getAdditionalInfo()!=null){
+		} else if (event.getAdditionalInfo() != null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo());
-		} else{
-			return fify("past",event.getAction(),event.getInitiator().getNamecode());
+		} else {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode());
 		}
 	}
-	
-
 
 	private String encodeLoneEventHideObject(Event event) {
-		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget())
+				&& event.getTarget() != null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(),
-					"["+event.getTarget().getNamecode()+"]");
-		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
-			return fify("past", event.getAction(), event.getInitiator().getNamecode(), "["+event.getTarget().getNamecode()+"]");
-		} else {
-			System.out.println("in else clause");
+					"[" + event.getTarget().getNamecode() + "]");
+		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget() != null) {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(),
+					"[" + event.getTarget().getNamecode() + "]");
+		} else if (event.getAdditionalInfo() != null) {
 			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo());
+		} else {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode());
 		}
 	}
 

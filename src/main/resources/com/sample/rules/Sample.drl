@@ -143,16 +143,16 @@ no-loop
 	
 	int saveThrow = Utils.roll("1d20",c.getAdvantage("wisdom").getValue())+c.getBonus("wisdom");
 	if(saveThrow >= pk.getDc()){
-		Event parentE = act.addEvent(c,"resist_success",c,"phantasmal_killer");
-		Event childE = act.addEvent(c,"recover_action",c,"phantasmal_killer");
+		Event parentE = act.addEvent(c,"resist_success",null,"phantasmal_killer");
+		Event childE = act.addEvent(c,"recover_action",null,null);
 		childE.setPreviousRelatedEvent(parentE);
 		pk.setOver();
 		retract(pk);
 		System.out.println(c.getName()+" PASSED PK SAVING THROW");
 	}
 	else{
-		Event parentE =act.addEvent(c,"resist_failure",c,"phantasmal_killer");
-		Event childE =act.addEvent(c,"get_damaged_action",c,null);
+		Event parentE =act.addEvent(c,"resist_failure",null,"phantasmal_killer");
+		Event childE =act.addEvent(c,"get_damaged_action",null,null);
 		childE.setPreviousRelatedEvent(parentE);
 		int damage = Utils.roll("4d10",Utils.Advantage.NO);
 		System.out.println(c.getName()+" DIDN'T PASS PK SAVING THROW: HIT FOR "+damage+" HP");
@@ -291,7 +291,7 @@ salience 8700
 		//childE.setPreviousRelatedEvent(parentE);
 		}else{
 		System.out.println(c.getName()+": PK didn't land on "+act.getTargetCreature().getName());
-		Event childE = act.addEvent(c,"resist_success",c,"phantasmal_killer");
+		Event childE = act.addEvent(act.getTargetCreature(),"resist_success",act.getTargetCreature(),"phantasmal_killer");
 		//childE.setPreviousRelatedEvent(parentE);
 		}
 		retract(pk);

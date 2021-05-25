@@ -82,6 +82,7 @@ prep(sell_action,C)
 					--> [to],{propernoun(_,N,C,_,_), not(N==neut)}.
 prep(cast_action,C)--> [on],{propernoun(_,_,C,_,_)}.
 prep(recover_action,C)--> [from],{noun(_,_,C,_,_)}.
+prep(resist_failure,C)--> [to],{noun(_,_,C,_,_)}.
 prep(walk_action,C ) 
 					--> [on],{propernoun(_,neut,C,_,_)}.
 prep(walk_action,C) 
