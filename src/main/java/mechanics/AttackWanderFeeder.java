@@ -5,9 +5,9 @@ import java.util.List;
 import creatures.Creature;
 import mechanics.Action.Type;
 
-public class AttackWanderFeeder implements ActionProcessor {
+public class AttackWanderFeeder  {
 
-	@Override
+	
 	public Action feed(Creature originCreature, List<Creature> creatures) {
 		var act = new Action();
 		if (originCreature.getName().equals("Wander Hawke")) {
@@ -33,7 +33,7 @@ public class AttackWanderFeeder implements ActionProcessor {
 		return act;
 	}
 
-	@Override
+	
 	public void processAction(Action action) {
 		System.out.println(action);
 		

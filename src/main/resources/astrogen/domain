@@ -6,11 +6,14 @@ adj(AGR,hurt)			--> [hurt].
 adj(AGR,injured)			--> [injured].
 %adj(AGR,healthy)			--> [healthy].
 
-%prep(cast_action,C)	--> [on],{noun(_,_,C,_,_)}.
 
 verb(pres,sing,hurt_action)	--> [hurts].
 verb(pres,plur,hurt_action)	--> [hurt].
 verb(past,_,hurt_action)	--> [hurt].
+
+verb(pres,sing,cast_action)	--> [casts].
+verb(pres,plur,cast_action)	--> [cast].
+verb(past,_,cast_action)		--> [cast].
 
 verb(ditr,pres,sing,cast_action)	--> [casts].
 verb(ditr,pres,plur,cast_action)	--> [cast].
@@ -24,7 +27,44 @@ verb(pres,sing,attack_action)	--> [attacks].
 verb(pres,plur,attack_action)	--> [attack].
 verb(past,_,attack_action)	--> [attacked].
 
+verb(pres,sing,fumble_action)	--> [fumbles],[a],[spell].
+verb(pres,plur,fumble_action)	--> [fumble],[a],[spell].
+verb(past,_,fumble_action)	--> [fumbled],[a],[spell].
+
+verb(pres,sing,get_damaged_action)	--> [gets],[hurt].
+verb(pres,plur,get_damaged_action)	--> [get],[hurt].
+verb(past,_,get_damaged_action)		--> [got],[hurt].
+
+verb(pres,sing,get_affected_action)	--> [gets],[affected].
+verb(pres,plur,get_affected_action)	--> [get],[affected].
+verb(past,_,get_affected_action)	--> [got],[affected].
+
+verb(pres,sing,help_ready)	--> [gets],[ready],[to],[help].
+verb(pres,plur,help_ready)	--> [get],[ready],[to],[help].
+verb(past,_,help_ready)		--> [got],[ready],[to],[help].
+
+verb(pres,sing,dodge_ready)		--> [gets],[ready],[to],[dodge].
+verb(pres,plur,dodge_ready)	--> [get],[ready],[to],[dodge].
+verb(past,_,dodge_ready)	--> [got],[ready],[to],[dodge].
+
+verb(pres,sing,resist_success)		--> [resists]. 
+verb(pres,plur,resist_success)		--> [resist].
+verb(past,_,resist_success)		--> [resisted].
+
+verb(pres,sing,resist_failure)		--> [succumbs].
+verb(pres,plur,resist_failure)		--> [succumb].
+verb(past,_,resist_failure)		--> [succumbed].
+
+verb(pres,sing,recover_action)		--> [recovers].
+verb(pres,plur,recover_action)		--> [recover].
+verb(past,_,recover_action)		--> [recovered].
+
+verb(pres,sing,death_action)		--> [dies].
+verb(pres,plur,death_action)		--> [die].
+verb(past,_,death_action)		--> [died].
+
 noun(plur,neut,magic_missile) 		--> [magic],[missile].
+noun(plur,neut,phantasmal_killer)	--> [phantasmal],[killer].
 
 propernoun(sing,mask,wander)      	--> [wander,hawke].
 propernoun(sing,mask,velthal)      	--> [velthal].

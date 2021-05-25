@@ -31,21 +31,7 @@ public class Main {
 
 	public static final void main(String[] args) {
         try {
-            var tbot = new TelegramBot("1866795805:AAGQbwppQDp00FAj28YECtwzmen0gr1ZSrk");
-        	
-            Bot bot = new Bot(tbot);
             
-        	tbot.setUpdatesListener(updates -> {
-        		
-        		var id = updates.stream().map((update)->{
-        			Consumer<Update> consoom = bot.getUpdateHandler();
-        			consoom.accept(update);
-        			return update.updateId();
-        		}).reduce(-1, (x,y)->y);
-        	    // ... process updates
-        	    // return id of last processed update or confirm them all
-        	    return id;
-        	});
         	
         	
         	
@@ -90,7 +76,7 @@ public class Main {
 				}
 			});
         	
-        	var fight = new Fight();
+        	
         	
         	var wander = new Creature();
             wander.setName("Wander Hawke");
@@ -103,22 +89,43 @@ public class Main {
             elsa.setGender("fem");
             elsa.setHp(35);
 
+            
 
             List<Creature> creatures = new ArrayList<Creature>();
             creatures.add(wander);
             creatures.add(velthal);
             //creatures.add(elsa);
 
+            var fight = new Fight(kSession,creatures);
+            
             fight.setCreatures(creatures);
         	
-        	fight.setFeeder(new AttackWanderFeeder());
         	
         	fight.setSession(kSession);
         	
         	var narrator = new ASTROGENNarrator(creatures);
         	
-        	fight.setup();
-        	fight.run();
+        	//fight.setup();
+        	//fight.run();
+        	
+        	var tbot = new TelegramBot("1866795805:AAGQbwppQDp00FAj28YECtwzmen0gr1ZSrk");
+        	
+            Bot bot = new Bot(tbot,fight,narrator);
+            
+        	tbot.setUpdatesListener(updates -> {
+        		
+        		var id = updates.stream().map((update)->{
+        			Consumer<Update> consoom = bot.getUpdateHandler();
+        			try { consoom.accept(update);}
+        			catch (Exception e) {
+						e.printStackTrace();
+					}
+        			return update.updateId();
+        			}).reduce(-1, (x,y)->y);
+        	    // ... process updates
+        	    // return id of last processed update or confirm them all
+        	    return id;
+        	});
         	
             
             // paraphrase(f(pres,isa,john,subscriber) & f(pres,isa,mary,subscriber) & f(pres,state,john,busy) & f(pres,state,mary,idle)).

@@ -2,7 +2,6 @@ package mechanics;
 
 import java.util.LinkedList;
 
-import org.drools.core.command.runtime.AddEventListenerCommand;
 
 import creatures.Creature;
 
@@ -10,7 +9,16 @@ public class Action {
 	Creature originCreature;
 	Creature targetCreature;
 	Type type;
-	String args;
+	String args = "";
+	boolean over = false;
+	public boolean isOver() {
+		return over;
+	}
+
+	public void setOver(boolean over) {
+		this.over = over;
+	}
+
 	public String getArgs() {
 		return args;
 	}
@@ -50,8 +58,10 @@ public class Action {
 		return targetCreature;
 	}
 
-	public void addEvent(Creature initiator, String action, Creature target, String additionalInfo) {
-		events.add(new Event(initiator,action,target,additionalInfo));
+	public Event addEvent(Creature initiator, String action, Creature target, String additionalInfo) {
+		var event = new Event(initiator,action,target,additionalInfo);
+		events.add(event);
+		return event;
 	}
 	
 
@@ -66,7 +76,7 @@ public class Action {
 	@Override
 	public String toString() {
 		String res="";
-		res+=originCreature.getName()+" "+type.name()+" "+targetCreature.getName();
+		res+=originCreature.getName()+" "+type.name()+" ["+args+"] "+(targetCreature != null? targetCreature.getName() : "no-target");
 		return res;
 	}
 }

@@ -1,47 +1,137 @@
 package mechanics.telegram;
 
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 
 import creatures.Creature;
 import mechanics.Action;
+import mechanics.Action.Type;
 import mechanics.ActionProcessor;
+import mechanics.AttackWanderFeeder;
+import mechanics.narrators.Narrator;
+import runtime.Fight;
 
-public class Bot implements ActionProcessor{
+public class Bot {
 
 	TelegramBot bot;
-	Future<Action> future;
-	public Bot(TelegramBot bot) {
+	Fight fight;
+	Narrator narrator;
+	Creature current;
+
+	public Bot(TelegramBot bot, Fight fight, Narrator narrator) {
 		this.bot = bot;
+		this.fight = fight;
+		this.narrator = narrator;
+		this.current = fight.next();
 	}
 
-	public Consumer<Update> getUpdateHandler(){
+	public Consumer<Update> getUpdateHandler() {
 		return (update) -> {
 			long chatId = update.message().chat().id();
-			if(update.message().text().equals("cucco")) {
-				bot.execute(new SendMessage(chatId, "Hello cucco!"));
+			if (update.message().text().equalsIgnoreCase("/status")) {
+				var status = narrator.getCharacterStatus(fight.getCreatures());
+				SendResponse response = bot.execute(new SendMessage(chatId, current.getName() + "'s turn.\n"+status));
+				return;
 			}
-			else
-			bot.execute(new SendMessage(chatId, "Hello!"));
+			Action act = generateAction(update);
+			if (validateAction(act)) {
+				var narration = narrator.narrate(fight.step(current, act));
+				current = fight.next();
+				SendResponse response = bot.execute(new SendMessage(chatId, narration));
+			} else {
+				SendResponse response = bot.execute(new SendMessage(chatId, "Invalid input"));
+			}
 		};
-		
+
 	}
 
-	@Override
-	public Action feed(Creature originCreature, List<Creature> creatures) {
-	
+	private String[] parseCommand(Message message) {
+		var pattern = Pattern.compile("^/(\\S+)\\s(.*)$");
+		var matcher = pattern.matcher(message.text());
+		
+		if (matcher.lookingAt()) {
+			return new String[] { matcher.group(1), matcher.group(2) };
+		} else {
+			var secPatt = Pattern.compile("^/(\\S+)$");
+			var secMtc = secPatt.matcher(message.text());
+			if(secMtc.lookingAt()) {
+				return new String[] {secMtc.group(1)};
+			}
+		}
+		return new String[] { "", "" };
+	}
+
+	private Action generateAction(Update update) {
+		// return new AttackWanderFeeder().feed(current, fight.getCreatures());
+		var fields = parseCommand(update.message());
+		//System.out.println(fields[0]+ "===" + fields[1]);
+		switch (fields[0]) {
+		case "cast": {
+			var act = new Action();
+			act.setType(Type.CAST);
+			act.setOriginCreature(current);
+			var fieldArr = fields[1].split("\\son\\s");
+			if (fieldArr.length == 1) {
+				act.setTargetCreature(current);
+				act.setArgs(fieldArr[0].toLowerCase().replace(' ', '_'));
+			} else if (fieldArr.length == 2) {
+				act.setTargetCreature(fight.getCreatures().stream()
+						.filter((x) -> x.getName().equalsIgnoreCase(fieldArr[1])).findAny().get());
+				act.setArgs(fieldArr[0].toLowerCase().replace(' ', '_'));
+			}
+			return act;
+
+//			
+		}
+		case "attack": {
+			var act = new Action();
+			act.setOriginCreature(current);
+			act.setType(Type.ATTACK);
+			act.setTargetCreature(fight.getCreatures().stream().filter((x) -> x.getName().equalsIgnoreCase(fields[1]))
+					.findAny().get());
+			return act;
+		}
+		case "help": {
+			var act = new Action();
+			act.setType(Type.HELP);
+			act.setOriginCreature(current);
+			act.setTargetCreature(fight.getCreatures().stream().filter((x) -> x.getName().equalsIgnoreCase(fields[1]))
+					.findAny().get());
+			return act;
+		}
+		case "dodge": {
+			System.out.println("IN DODGE BLOCK");
+			var act = new Action();
+			act.setType(Type.DODGE);
+			act.setOriginCreature(current);
+			return act;
+		}
+		}
 		return null;
+
 	}
 
-	@Override
-	public void processAction(Action action) {
-		// TODO Auto-generated method stub
-		
+	private boolean validateAction(Action act) {
+		if (act == null)
+			return false;
+		System.out.println("not null");
+		if (act.getOriginCreature() == null)
+			return false;
+		System.out.println("origin not null");
+		if (act.getOriginCreature().equals(act.getTargetCreature()))
+			return false;
+		System.out.println("origin!=target");
+		if (act.getType() == null)
+			return false;
+		System.out.println("type not null");
+
+		return true;
 	}
 }

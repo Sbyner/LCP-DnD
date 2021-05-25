@@ -3,8 +3,8 @@ package mechanics.spells;
 public class SpellFactory {
 	public static Spell getSpell(String name) {
 		switch(name) {
-		case "Magic Missile": return new MagicMissile();
-		case "Phantasmal Killer": return new PhantasmalKiller();
+		case "magic_missile": return new MagicMissile();
+		case "phantasmal_killer": return new PhantasmalKiller();
 		default: return new Fumble();
 		}
 		

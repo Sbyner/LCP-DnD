@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -54,9 +57,9 @@ public class ASTROGENNarrator implements Narrator {
 		System.out.println("all_rules " + (init.hasSolution() ? "succeeded" : "failed"));
 		init.close();
 
-		Query commas = new Query("clause_comma.");
-		System.out.println("clause_comma " + (commas.hasSolution() ? "succeeded" : "failed"));
-		commas.close();
+//		Query commas = new Query("clause_comma.");
+//		System.out.println("clause_comma " + (commas.hasSolution() ? "succeeded" : "failed"));
+//		commas.close();
 
 		Query pronouns = new Query("pronoun.");
 		System.out.println("pronoun " + (pronouns.hasSolution() ? "succeeded" : "failed"));
@@ -69,17 +72,16 @@ public class ASTROGENNarrator implements Narrator {
 		// reconsult.close();
 	}
 
-	public String apply(Event arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private String fify(String tense, String rel, String subject, String object) {
 		return "f(" + tense + "," + rel + "," + subject + "," + object + ")";
 	}
-	
+
 	private String fify(String tense, String rel, String subject, String object, String target) {
-		return "f(" + tense + "," + rel + "," + subject + "," + object + ","+target+")";
+		return "f(" + tense + "," + rel + "," + subject + "," + object + "," + target + ")";
+	}
+
+	private String fify(String tense, String rel, String subject) {
+		return "f(" + tense + "," + rel + "," + subject + ")";
 	}
 
 	public String getCharacterStatus(Collection<Creature> creatures) {
@@ -110,7 +112,8 @@ public class ASTROGENNarrator implements Narrator {
 				var matcher = pattern.matcher(line);
 				if (matcher.lookingAt())
 					return matcher.group(1);
-				else return "NONDECLARATIONLINE";
+				else
+					return "NONDECLARATIONLINE";
 			}).noneMatch((x) -> x.equals(creature.getNamecode()))) {
 
 				var output = new PrintWriter(new FileWriter("src/main/resources/astrogen/domain", true));
@@ -133,7 +136,89 @@ public class ASTROGENNarrator implements Narrator {
 				new Term[] { new Compound("string", new Term[] { new Variable("X") }), term });
 		var res = q2.oneSolution().get("X").toString();
 		q2.close();
-		return res.substring(1, res.length() - 1);
+		return res.substring(1, res.length() - 1).replace('\n', ' ');
+	}
+
+	@Override
+	public String narrate(List<Event> events) {
+		LinkedList<String> fStructs = new LinkedList<String>();
+		boolean skipNext = false;
+		Collections.reverse(events);
+		for (Event event : events) { // TODO iterate backwards
+			if (skipNext) {
+				skipNext = false;
+				continue;
+			}
+			if (event.getPreviousRelatedEvent() == null) {
+				fStructs.addFirst(encodeLoneEvent(event));
+			} else {
+				skipNext = true;
+				if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget())) {// ditransitive
+					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+							event.getAdditionalInfo(), event.getTarget().getNamecode())));
+				} else if (!event.getInitiator().equals(event.getTarget())) {
+					fStructs.addFirst(bindFStructures(encodeLoneEventHideObject(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+							event.getTarget().getNamecode())));
+				} else {
+					System.out.println("in else clause");
+					fStructs.addFirst(bindFStructures(encodeLoneEvent(event.getPreviousRelatedEvent()),fify("past", event.getAction(), "[" + event.getInitiator().getNamecode() + "]",
+							event.getAdditionalInfo())));
+
+				}
+			}
+		}
+//		for(Event event: events) {
+//			if(event.getAdditionalInfo()!=null && !event.getInitiator().equals(event.getTarget())) {
+//				fSTructs.add(fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(), event.getTarget().getNamecode()));
+//			} 
+//			else if(!event.getInitiator().equals(event.getTarget())){
+//				fSTructs.add(fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getTarget().getNamecode()));
+//			} else {
+//				System.out.println("in else loop");
+//				fify("past",event.getAction(),event.getInitiator().getNamecode(),event.getAdditionalInfo());
+//			}
+//			
+//		}
+		return fStructs.stream().map((fstr)->{
+			return query(new Compound("paraphrase",new Term[] { Term.textToTerm(fstr)}));
+		}).collect(Collectors.joining("\n"));
+//		return query(new Compound("paraphrase",
+//				new Term[] { Term.textToTerm(fStructs.stream().collect(Collectors.joining(" & "))) }));
+//		var res = "";
+//		res += "This is a dummy translation: it will translate\n";
+//		for (Event event : events) {
+//			res += event.toString()+'\n';
+//		}
+
+	}
+
+	private String bindFStructures(String... fs) {
+
+		return List.of(fs).stream().collect(Collectors.joining(" & "));
+	}
+
+	private String encodeLoneEvent(Event event) {
+		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(),
+					event.getTarget().getNamecode());
+		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getTarget().getNamecode());
+		} else {
+			System.out.println("in else clause");
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo());
+		}
+	}
+	
+	private String encodeLoneEventHideObject(Event event) {
+		if (event.getAdditionalInfo() != null && !event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo(),
+					"["+event.getTarget().getNamecode()+"]");
+		} else if (!event.getInitiator().equals(event.getTarget()) && event.getTarget()!=null) {
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), "["+event.getTarget().getNamecode()+"]");
+		} else {
+			System.out.println("in else clause");
+			return fify("past", event.getAction(), event.getInitiator().getNamecode(), event.getAdditionalInfo());
+		}
 	}
 
 }

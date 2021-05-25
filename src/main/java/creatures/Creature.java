@@ -115,7 +115,7 @@ public class Creature {
 	public void castSpell(Spell spell) {
 		if (spell.getLevel() != 0)
 			return;
-			spellSlots.set(spell.getLevel(), spellSlots.get(spell.getLevel()-1));
+			spellSlots.set(spell.getLevel(), spellSlots.get(spell.getLevel())-1);
 	}
 	
 
